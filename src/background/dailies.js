@@ -156,8 +156,8 @@
         Options.Get(key, function(id, value) {
           id        = id[0];
           var index = enabledDistinctionList.indexOf(id);
-          console.log(id);
-          console.log(enabledDistinctionList);
+          //console.log(id);
+          //console.log(enabledDistinctionList);
           if (value && index === -1) {
             if (enabledDistinctionList.length === 0) {
               Message.PostAll({'hideObject': {
@@ -171,7 +171,7 @@
               'value': Math.ceil(enabledDistinctionList.length / 4) * 47
             }});
           } else if (!value && index !== -1) {
-            console.log('splicing');
+            //console.log('splicing');
             enabledDistinctionList.splice(index, 1);
             if (enabledDistinctionList.length === 0) {
               Message.PostAll({'hideObject': {
@@ -185,7 +185,7 @@
               }});
             }
           }
-          console.log('count: ' + enabledDistinctionList.length);
+          //console.log('count: ' + enabledDistinctionList.length);
           Message.PostAll({'hideObject': {
             'id': '#distinctions-body-' + id,
             'value': !value

@@ -693,7 +693,7 @@
     },
 
     CheckMulti: function(json) {
-      if (json.quest_type === 1) {
+      if (json.quest_type === 1 || json.quest_type === 7) {
         quest.url = '#raid_multi/';
       }
     },
@@ -881,7 +881,7 @@
         var end   = json.twitter.forced_message.lastIndexOf('\n');
         if (start !== -1 && end !== -1) {
           var english = json.twitter.forced_message.substring(start + 1, end);
-          console.log(english);
+          //console.log(english);
           if (tweetHash[english] !== undefined) {
             copy(tweetHash[english]);
           }
