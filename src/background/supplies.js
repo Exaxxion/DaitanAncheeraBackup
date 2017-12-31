@@ -117,41 +117,37 @@
       }
     },
 
-    SetRecovery: function(json) {
+    SetRecoveryAndPowerUp: function(json) {
       if (json !== undefined) {
-        var updated = false;
+        var updatedRecovery = false;
+        var updatedPowerUp = false;
         var id;
         for (var i = 0; i < json.length; i++) {
-          id = json[i].item_id;
-          if (supplies.recovery[id] !== undefined) {
-            if (updateSupply(id, 'recovery', json[i].number)){
-              updated = true;
+          for (var j = 0; j < json[i].length; j++) {
+            id = json[i][j].item_id;
+            if (i == 0) {
+              if (supplies.recovery[id] !== undefined) {
+                if (updateSupply(id, 'recovery', json[i][j].number)) {
+                  updatedRecovery = true;
+                }
+              } else {
+                updatedRecovery = newSupply(id, 'recovery', json[i][j].number, json[i][j].name, id);
+              }
+            } else {
+              if (supplies.powerUp[id] !== undefined) {
+                if (updateSupply(id, 'powerUp', json.items[i][j].number)) {
+                  updatedPowerUp = true;
+                }
+              } else {
+                updatedPowerUp = newSupply(id, 'powerUp', json.items[i][j].number, json.items[i][j].name, '' + (100000 + parseInt(id)));
+              }
             }
-          } else {
-            updated = newSupply(id, 'recovery', json[i].number, json[i].name, id);
           }
         }
-        if (updated) {
+        if (updatedRecovery) {
           saveSupply('recovery');
         }
-      }
-    },
-
-    SetPowerUp: function(json) {
-      if (json !== undefined) {
-        var updated = false;
-        var id;
-        for (var i = 0; i < json.items.length; i++) {
-          id = json.items[i].item_id;
-          if (supplies.powerUp[id] !== undefined) {
-            if (updateSupply(id, 'powerUp', json.items[i].number)){
-              updated = true;
-            }
-          } else {
-            updated = newSupply(id, 'powerUp', json.items[i].number, json.items[i].name, '' + (100000 + parseInt(id)));
-          }
-        }
-        if (updated) {
+        if (updatedPowerUp) {
           saveSupply('powerUp');
         }
       }
@@ -208,13 +204,15 @@
         var updated = false;
         var id;
         for (var i = 0; i < json.length; i++) {
-          id = json[i].item_id;
-          if (supplies.draw[id] !== undefined) {
-            if (updateSupply(id, 'draw', json[i].number)){
-              updated = true;
+          for (var j = 0; j < json[i].length; j++) {
+            id = json[i][j].item_id;
+            if (supplies.draw[id] !== undefined) {
+              if (updateSupply(id, 'draw', json[i][j].number)) {
+                updated = true;
+              }
+            } else {
+              updated = newSupply(id, 'draw', json[i][j].number, json[i][j].name, '' + (200000 + parseInt(id)));
             }
-          } else {
-            updated = newSupply(id, 'draw', json[i].number, json[i].name, '' + (200000 + parseInt(id)));
           }
         }
         if (updated) {
@@ -1049,7 +1047,7 @@
           createPlannerSupply('material', '1202', 1500),
 
           createPlannerSupply('powerUp', '20004', 1),
-          createPlannerSupply('raid', '203', 10),
+          createPlannerSupply('misc', '203', 10),
           createPlannerSupply('raid', '107', 10),
           createPlannerSupply('material', '2003', 5),
           createPlannerRevenantFiveStar('fragment', 100),
@@ -2145,14 +2143,6 @@
         'name': 'Ca Ong Anima',
         'sequence': 111500
       },
-      '202': {
-        'name': 'Damascus Grain',
-        'sequence': 190020
-      },
-      '203': {
-        'name': 'Damascus Crystal',
-        'sequence': 190030
-      },
       '204': {
         'name': 'Rose Crystal Petal',
         'sequence': 120040
@@ -2835,6 +2825,16 @@
         'name': 'Diablo Omega Anima',
         'sequence': 400840
       }
+    },
+    'misc': {
+      '202': {
+        'name': 'Damascus Grain',
+        'sequence': 800030
+      },
+      '203': {
+        'name': 'Damascus Crystal',
+        'sequence': 800031
+      },
     }
   };
 })();

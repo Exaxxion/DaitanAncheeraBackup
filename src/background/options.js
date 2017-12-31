@@ -3,6 +3,7 @@
     ougiRefresh:               false,
     skip:                      false,
     skipNext:                  false,
+    skipCoopResults:           false,
     enableNotifications:       true,
     muteNotifications:         false,
     apNotifications:           true,

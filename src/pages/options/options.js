@@ -103,6 +103,7 @@ var options = [
   'ougiRefresh',
   'skip',
   'skipNext',
+  'skipCoopResults',
   'enableNotifications',
   'muteNotifications',
   'apNotifications',

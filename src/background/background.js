@@ -300,7 +300,7 @@
         if (message.request.url.indexOf('/resultmulti/data/') !== -1) {
           Supplies.GetLoot(message.request.response);
           Profile.CompleteRaid(message.request.response);
-          Dailies.CompleteCoop(message.request.response);
+          Dailies.CompleteCoop(message.request.response, message.id);
           Dailies.CompleteRaid(message.request.response);
         }
         if (message.request.url.indexOf('retire.json') !== -1) {
@@ -349,16 +349,13 @@
         if (message.request.url.indexOf('/twitter/tweet?_=') !== -1) {
           Dailies.UseTweet(message.request.response);
         }
-        if (message.request.url.indexOf('/item/normal_item_list') !== -1) {
-          Supplies.SetRecovery(message.request.response);
+        if (message.request.url.indexOf('/item/recovery_and_evolution_list_by_filter_mode') !== -1) {
+          Supplies.SetRecoveryAndPowerUp(message.request.response);
         }
-        if (message.request.url.indexOf('/item/evolution_items') !== -1) {
-          Supplies.SetPowerUp(message.request.response);
-        }
-        if (message.request.url.indexOf('/item/article_list') !== -1) {
+        if (message.request.url.indexOf('/item/article_list_by_filter_mode') !== -1) {
           Supplies.SetTreasure(message.request.response);
         }
-        if (message.request.url.indexOf('/item/gacha_ticket_list') !== -1) {
+        if (message.request.url.indexOf('/item/gacha_ticket_and_others_list_by_filter_mode') !== -1) {
           Supplies.SetDraw(message.request.response);
         }
         if (message.request.url.indexOf('/present/possessed') !== -1) {
@@ -550,7 +547,8 @@
       }
     },
 
-    OpenURL: function(url, devID) {
+    OpenURL: function (url, devID) {
+      console.log(url);
       chrome.runtime.sendMessage({openURL: {
         url: url
       }});
