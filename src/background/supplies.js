@@ -124,22 +124,35 @@
         var id;
         for (var i = 0; i < json.length; i++) {
           for (var j = 0; j < json[i].length; j++) {
-            id = json[i][j].item_id;
-            if (i == 0) {
-              if (supplies.recovery[id] !== undefined) {
-                if (updateSupply(id, 'recovery', json[i][j].number)) {
-                  updatedRecovery = true;
+            if (i == 1) {
+              for (var k = 0; k < json[i][j].length; k++) {
+                id = json[i][j][k].item_id;
+                if (supplies.powerUp[id] !== undefined) {
+                  if (updateSupply(id, 'powerUp', json[i][j][k].number)) {
+                    updatedPowerUp = true;
+                  }
+                } else {
+                  updatedPowerUp = newSupply(id, 'powerUp', json[i][j][k].number, json[i][j][k].name, '' + (100000 + parseInt(id)));
                 }
-              } else {
-                updatedRecovery = newSupply(id, 'recovery', json[i][j].number, json[i][j].name, id);
               }
             } else {
-              if (supplies.powerUp[id] !== undefined) {
-                if (updateSupply(id, 'powerUp', json.items[i][j].number)) {
-                  updatedPowerUp = true;
+              id = json[i][j].item_id;
+              if (json[i][j].recovery) {
+                if (supplies.recovery[id] !== undefined) {
+                  if (updateSupply(id, 'recovery', json[i][j].number)) {
+                    updatedRecovery = true;
+                  }
+                } else {
+                  updatedRecovery = newSupply(id, 'recovery', json[i][j].number, json[i][j].name, id);
                 }
               } else {
-                updatedPowerUp = newSupply(id, 'powerUp', json.items[i][j].number, json.items[i][j].name, '' + (100000 + parseInt(id)));
+                if (supplies.powerUp[id] !== undefined) {
+                  if (updateSupply(id, 'powerUp', json[i][j].number)) {
+                    updatedPowerUp = true;
+                  }
+                } else {
+                  updatedPowerUp = newSupply(id, 'powerUp', json[i][j].number, json[i][j].name, '' + (100000 + parseInt(id)));
+                }
               }
             }
           }
@@ -1985,67 +1998,63 @@
       },
       '60': {
         'name': 'Macula Marius Anima',
-        'sequence': 110110
-      },
-      '61': {
-        'name': 'Gold Nugget',
-        'sequence': 190010
+        'sequence': 110210
       },
       '62': {
         'name': 'Medusa Anima',
-        'sequence': 110210
+        'sequence': 110310
       },
       '63': {
         'name': 'Dark Angel Oliva Anima',
-        'sequence': 110310
+        'sequence': 110610
       },
       '64': {
         'name': 'Twin Elements Anima',
-        'sequence': 110410
+        'sequence': 110110
       },
       '65': {
         'name': 'Nezha Anima',
-        'sequence': 110510
+        'sequence': 110410
       },
       '66': {
         'name': 'Apollo Anima',
-        'sequence': 110610
+        'sequence': 110510
       },
       '67': {
         'name': 'Odin Anima',
-        'sequence': 110710
+        'sequence': 110740
       },
       '68': {
         'name': 'Grani Anima',
-        'sequence': 110810
+        'sequence': 110710
       },
       '72': {
         'name': 'Lich Anima',
-        'sequence': 110910
+        'sequence': 110750
       },
       '73': {
         'name': 'Macula Marius Omega Anima',
-        'sequence': 110120
+        'sequence': 110220
       },
       '74': {
         'name': 'Medusa Omega Anima',
-        'sequence': 110220
+        'sequence': 110320
       },
       '75': {
         'name': 'Dark Angel Olivia Omega Anima',
-        'sequence': 110320
+        'sequence': 110620
       },
       '76': {
         'name': 'Twin Elements Omega Anima',
-        'sequence': 110420
+        'sequence': 110120
       },
       '77': {
         'name': 'Nezha Omega Anima',
-        'sequence': 110520
+        'sequence': 110420
       },
       '78': {
         'name': 'Apollo Omega Anima',
-        'sequence': 110620
+        'sequence': 110520
       },
       '79': {
         'name': 'Primeval Horn',
@@ -2053,39 +2062,55 @@
       },
       '80': {
         'name': 'Bright Spirits',
-        'sequence': 120010
+        'sequence': 110630
       },
       '81': {
         'name': 'Murky Spirits',
-        'sequence': 120020
+        'sequence': 110631
       },
       '82': {
         'name': 'Peacemaker Star',
-        'sequence': 120110
+        'sequence': 110632
       },
       '83': {
         'name': 'Heavenly Horn',
-        'sequence': 120130
+        'sequence': 110634
       },
       '84': {
         'name': 'Azure Feather',
-        'sequence': 120120
+        'sequence': 110633
       },
       '85': {
         'name': 'Athena Anima',
-        'sequence': 111000
+        'sequence': 110700
+      },
+      '86': {
+        'name': 'Athena Omega Anima',
+        'sequence': 110701
       },
       '87': {
         'name': 'Baal Anima',
-        'sequence': 111100
+        'sequence': 110720
+      },
+      '88': {
+        'name': 'Baal Omega Anima',
+        'sequence': 110721
       },
       '92': {
         'name': 'Garuda Anima',
-        'sequence': 111200
+        'sequence': 110730
+      },
+      '93': {
+        'name': 'Garuda Omega Anima',
+        'sequence': 110731
       },
       '94': {
         'name': 'Gilgamesh Anima',
-        'sequence': 111300
+        'sequence': 110780
+      },
+      '96': {
+        'name': 'Prometheus Anima',
+        'sequence': 110760
       },
       '101': {
         'name': 'Rubeus Centrum',
@@ -2141,15 +2166,67 @@
       },
       '117': {
         'name': 'Ca Ong Anima',
-        'sequence': 111500
+        'sequence': 110770
+      },
+      '131': {
+        'name': 'Crimson Spirits',
+        'sequence': 110812
+      },
+      '132': {
+        'name': 'Azure Spirits',
+        'sequence': 110813
+      },
+      '133': {
+        'name': 'Primal Core',
+        'sequence': 110814
+      },
+      '136': {
+        'name': 'Astrum Fragment',
+        'sequence': 110817
+      },
+      '137': {
+        'name': 'Meteorite',
+        'sequence': 110818
+      },
+      '138': {
+        'name': 'Ultima Unit',
+        'sequence': 110819
+      },
+      '139': {
+        'name': 'Meteorite Fragment',
+        'sequence': 110820
+      },
+      '140': {
+        'name': 'Ultima Core',
+        'sequence': 110821
+      },
+      '141': {
+        'name': 'Odin Omega Anima',
+        'sequence': 110740
+      },
+      '142': {
+        'name': 'Grani Omega Anima',
+        'sequence': 110710
+      },
+      '143': {
+        'name': 'Lich Omega Anima',
+        'sequence': 110750
       },
       '204': {
         'name': 'Rose Crystal Petal',
-        'sequence': 120040
+        'sequence': 110750
       },
       '205': {
         'name': 'Rose Crystal',
-        'sequence': 120050
+        'sequence': 110751
+      },
+      '502': {
+        'name': 'Hector Anima',
+        'sequence': 110800
+      },
+      '504': {
+        'name': 'Anubis Anima',
+        'sequence': 110810
       },
       '506': {
         'name': 'Michael Anima',
@@ -2435,35 +2512,35 @@
       },
       '5211': {
         'name': 'Fire Halo',
-        'sequence': 230660
+        'sequence': 230671
       },
       '5221': {
         'name': 'Water Halo',
-        'sequence': 230670
+        'sequence': 230672
       },
       '5231': {
         'name': 'Earth Halo',
-        'sequence': 230680
+        'sequence': 230673
       },
       '5241': {
         'name': 'Wind Halo',
-        'sequence': 230690
+        'sequence': 230674
       },
       '5311': {
         'name': 'Fire Pinion',
-        'sequence': 230700
+        'sequence': 230661
       },
       '5321': {
         'name': 'Water Pinion',
-        'sequence': 230710
+        'sequence': 230662
       },
       '5331': {
         'name': 'Earth Pinion',
-        'sequence': 230720
+        'sequence': 230663
       },
       '5341': {
         'name': 'Wind Pinion',
-        'sequence': 230730
+        'sequence': 230664
       },
       '6001': {
         'name': 'Zhuque Seal',
@@ -2499,83 +2576,123 @@
       },
       '5411': {
         'name': 'Silver Sword Shard',
-        'sequence': 220100
+        'sequence': 230810
       },
       '5421': {
         'name': 'Silver Dagger Shard',
-        'sequence': 220200
+        'sequence': 230820
       },
       '5431': {
         'name': 'Silver Spear Shard',
-        'sequence': 220300
+        'sequence': 230830
       },
       '5441': {
         'name': 'Silver Axe Shard',
-        'sequence': 220400
+        'sequence': 230840
       },
       '5451': {
         'name': 'Silver Staff Shard',
-        'sequence': 220500
+        'sequence': 230850
       },
       '5461': {
         'name': 'Silver Gun Shard',
-        'sequence': 220600
+        'sequence': 230860
       },
       '5471': {
         'name': 'Silver Gauntlet Shard',
-        'sequence': 220700
+        'sequence': 230870
       },
       '5481': {
         'name': 'Silver Bow Shard',
-        'sequence': 220800
+        'sequence': 230880
       },
       '5491': {
         'name': 'Silver Harp Shard',
-        'sequence': 220900
+        'sequence': 230890
       },
       '5501': {
         'name': 'Silver Katana Shard',
-        'sequence': 221000
+        'sequence': 230900
+      },
+      '5511': {
+        'name': 'Pure Sword Soul',
+        'sequence': 230910
+      },
+      '5521': {
+        'name': 'Pure Dagger Soul',
+        'sequence': 230920
+      },
+      '5531': {
+        'name': 'Pure Spear Soul',
+        'sequence': 230930
+      },
+      '5541': {
+        'name': 'Pure Axe Soul',
+        'sequence': 230940
+      },
+      '5551': {
+        'name': 'Pure Staff Soul',
+        'sequence': 230950
+      },
+      '5561': {
+        'name': 'Pure Gun Soul',
+        'sequence': 230960
+      },
+      '5571': {
+        'name': 'Pure Gauntlet Soul',
+        'sequence': 230970
+      },
+      '5581': {
+        'name': 'Pure Bow Soul',
+        'sequence': 230980
+      },
+      '5591': {
+        'name': 'Pure Harp Soul',
+        'sequence': 230990
+      },
+      '5601': {
+        'name': 'Pure Katana Soul',
+        'sequence': 231000
       },
       '5611': {
         'name': 'One-Star Fragment',
-        'sequence': 221100
+        'sequence': 231010
       },
       '5621': {
         'name': 'Two-Star Fragment',
-        'sequence': 221200
+        'sequence': 231020
       },
       '5631': {
         'name': 'Three-Star Fragment',
-        'sequence': 221300
+        'sequence': 231030
       },
       '5641': {
         'name': 'Four-Star Fragment',
-        'sequence': 221400
+        'sequence': 231040
       },
       '5651': {
         'name': 'Five-Star Fragment',
-        'sequence': 221500
+        'sequence': 231050
       },
       '5661': {
         'name': 'Six-Star Fragment',
-        'sequence': 221600
+        'sequence': 231060
       },
       '5671': {
         'name': 'Seven-Star Fragment',
-        'sequence': 221700
+        'sequence': 231070
       },
       '5681': {
         'name': 'Eight-Star Fragment',
-        'sequence': 221800
+        'sequence': 231080
       },
       '5691': {
         'name': 'Nine-Star Fragment',
-        'sequence': 221900
+        'sequence': 231090
       },
       '5701': {
         'name': 'Ten-Star Fragment',
-        'sequence': 222100
+        'sequence': 231100
       }
     },
     'coop': {
@@ -2779,51 +2896,51 @@
     'event': {
       '10018': {
         'name': 'Ifrit Anima',
-        'sequence': 400230
+        'sequence': 400002
       },
       '10005': {
         'name': 'Cocytus Anima',
-        'sequence': 400030
+        'sequence': 400102
       },
       '10011': {
         'name': 'Vohu Manah Anima',
-        'sequence': 400130
+        'sequence': 400202
       },
       '10027': {
         'name': 'Sagittarius Anima',
-        'sequence': 400330
+        'sequence': 400303
       },
       '10046': {
         'name': 'Corow Anima',
-        'sequence': 400530
+        'sequence': 400402
       },
       '10065': {
         'name': 'Diablo Anima',
-        'sequence': 400830
+        'sequence': 400502
       },
       '10019': {
         'name': 'Ifrit Omega Anima',
-        'sequence': 400240
+        'sequence': 400003
       },
       '10006': {
         'name': 'Cocytus Omega Anima',
-        'sequence': 400040
+        'sequence': 400103
       },
       '10012': {
         'name': 'Vohu Manah Omega Anima',
-        'sequence': 400140
+        'sequence': 400203
       },
       '10028': {
         'name': 'Sagittarius Omega Anima',
-        'sequence': 400340
+        'sequence': 400304
       },
       '10047': {
         'name': 'Corow Omega Anima',
-        'sequence': 400540
+        'sequence': 400403
       },
       '10066': {
         'name': 'Diablo Omega Anima',
-        'sequence': 400840
+        'sequence': 400503
       }
     },
     'misc': {
@@ -2835,6 +2952,10 @@
         'name': 'Damascus Crystal',
         'sequence': 800031
       },
+      '61': {
+        'name': 'Gold Nugget',
+        'sequence': 800040
+      }
     }
   };
 })();
