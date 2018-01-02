@@ -376,13 +376,17 @@
           Dailies.PurchaseDistinction(message.request.response);
         }
         if (message.request.url.indexOf('/weapon/list/') !== -1) {
-          Profile.SetWeaponNumber(message.request.response);
+          Profile.SetWeaponNumber(message.request.response, message.request.url, message.id);
         }
         if (message.request.url.indexOf('/npc/list/') !== -1) {
           Profile.SetCharacterNumber(message.request.response, message.request.url);
         }
         if (message.request.url.indexOf('/summon/list/') !== -1) {
-          Profile.SetSummonNumber(message.request.response);
+          Profile.SetSummonNumber(message.request.response, message.request.url, message.id);
+        }
+        //reduce weapon/summons
+        if (message.request.url.indexOf('/weapon/decompose?') !== -1 || message.request.url.indexOf('/summon/decompose?') !== -1) {
+          Profile.Reduce(message.request.response, message.id);
         }
         if (message.request.url.indexOf('/container/move?') !== -1) {
           Profile.MoveFromStash(message.request.response);
@@ -410,7 +414,7 @@
         if (message.request.url.indexOf('/shop/purchase') !== -1) {
           Profile.SpendCrystals(message.request.response);
         }
-        if (message.request.url.indexOf('mbp/mbp_info') !== -1 || message.request.url.indexOf('/user/content/index?') !== -1) {
+        if (message.request.url.indexOf('/mbp/mbp_info') !== -1 || message.request.url.indexOf('/profile/content/index') !== -1) {
           Dailies.CheckRenown(message.request.response);
         }
         if (message.request.url.indexOf('evolution_weapon/evolution?') !== -1 || message.request.url.indexOf('evolution_summon/evolution?') !== -1) {
@@ -447,7 +451,7 @@
         if (message.request.url.indexOf('enhancement_weapon/enhancement') !== -1 ||
             message.request.url.indexOf('enhancement_summon/enhancement') !== -1 ||
             message.request.url.indexOf('enhancement_npc/enhancement') !== -1) {
-          Profile.Upgrade(message.request.response);
+          Profile.Upgrade(message.request.response, message.request.url, message.id);
         }
 
         if (message.request.url.indexOf('/shop_exchange/activate_personal_support?_=') !== -1) {

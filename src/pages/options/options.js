@@ -104,6 +104,7 @@ var options = [
   'skip',
   'skipNext',
   'skipCoopResults',
+  'skipUpgradeResults',
   'enableNotifications',
   'muteNotifications',
   'apNotifications',

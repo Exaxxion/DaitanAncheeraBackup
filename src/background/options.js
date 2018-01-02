@@ -4,6 +4,7 @@
     skip:                      false,
     skipNext:                  false,
     skipCoopResults:           false,
+    skipUpgradeResults:        false,
     enableNotifications:       true,
     muteNotifications:         false,
     apNotifications:           true,

@@ -26,13 +26,14 @@
     sparks:          null,
   };
 
-  var responseList = {};
-  var restoreIDs   = ['1','2','3','5'];
+  var responseList    = {};
+  var restoreIDs      = ['1','2','3','5'];
 
-  var profileNames = [];
-  var nextUncap    = null;
-  var nextCost     = 0;
-  var nextUpgrade  = null;
+  var profileNames    = [];
+  var nextUncap       = null;
+  var nextCost        = 0;
+  var nextUpgrade     = null;
+  var reduceReturnURL = {};
 
   window.Profile = {
     Initialize: function(callback) {
@@ -176,20 +177,28 @@
       setProfile({'casinoChips': parseInt(amount)});
     },
 
-    SetWeaponNumber: function(json) {
+    SetWeaponNumber: function(json, url, devID) {
       var tuples             = {};
       tuples['weaponMax']    = parseInt(json.options.max_number);
       tuples['weaponNumber'] = json.options.number;
 
       setProfile(tuples);
+
+      if (Options.Get('skipUpgradeResults')) {
+        reduceReturnURL[devID] = '#list/-1/' + url.match(/\/weapon\/list\/(\d\/\d)\?/)[1] + '/1';
+      }
     },
 
-    SetSummonNumber: function(json) {
+    SetSummonNumber: function(json, url, devID) {
       var tuples             = {};
       tuples['summonMax']    = parseInt(json.options.max_number);
       tuples['summonNumber'] = json.options.number;
 
       setProfile(tuples);
+
+      if (Options.Get('skipUpgradeResults')) {
+        reduceReturnURL[devID] = '#list/-1/' + url.match(/\/summon\/list\/(\d\/\d)\?/)[1] + '/2';
+      }
     },
 
     SetCharacterNumber: function(json, url) {
@@ -204,6 +213,16 @@
         setProfile({'characterNumber': json.options.number});
       }
     },
+
+    Reduce: function(json, devID) {
+      if (Options.Get('skipUpgradeResults')) {
+        if (reduceReturnURL[devID] !== undefined) {
+          console.log(reduceReturnURL[devID]);
+          Message.Post(devID, { 'openURL': reduceReturnURL[devID] });
+        }
+      }
+    },
+
     MoveFromStash: function(json) {
       var tuples = {};
       var type;
@@ -426,9 +445,22 @@
       };
     },
 
-    Upgrade: function(json) {
+    Upgrade: function(json, url, devID) {
       if (nextUpgrade !== undefined) {
         setProfile({[nextUpgrade.category]: profile[nextUpgrade.category] -nextUpgrade.amount});
+      }
+      if (Options.Get('skipUpgradeResults')) {
+        var redirectURL = null;
+        if (url.indexOf('enhancement_weapon/enhancement') !== -1) {
+          redirectURL = '#enhancement/weapon/list_all';
+        } else if (url.indexOf('enhancement_summon/enhancement') !== -1) {
+          redirectURL = '#enhancement/summon/list_all';
+        } else if (url.indexOf('enhancement_npc/enhancement') !== -1) {
+          redirectURL = '#enhancement/npc/list_all';
+        }
+        if (redirectURL !== null) {
+          Message.Post(devID, { 'openURL': redirectURL });
+        }
       }
     },
 
