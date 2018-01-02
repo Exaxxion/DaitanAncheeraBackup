@@ -113,7 +113,7 @@
         Profile.SetChips(msg.chips.amount);
       }
       if (msg.profile) {
-        Profile.SetHomeProfile(msg.profile.rank, msg.profile.rankPercent, msg.profile.job, msg.profile.jobPercent, msg.profile.jobPoints, msg.profile.renown, msg.profile.prestige);
+        Profile.SetHomeProfile(msg.profile.rank, msg.profile.rankPercent, msg.profile.job, msg.profile.jobPercent, msg.profile.lupi, msg.profile.jobPoints, msg.profile.crystal, msg.profile.renown, msg.profile.prestige, msg.profile.arcarumTicket, msg.profile.arcapoints);
       }
       if (msg.event) {
         //Quest.SetEvent(msg.event);
@@ -480,6 +480,13 @@
         }
         if (message.request.url.indexOf('/quest/content/newextra') !== -1) {
           Dailies.SetPrimarchs(message.request.response);
+        }
+        if (message.request.url.indexOf('/party/job') !== -1) {
+          Profile.SetZenith(message.request.response);
+        }
+        //arcarum
+        if (message.request.url.indexOf('/rest/arcarum/start_stage?') !== -1) {
+          Profile.StartArcarumStage(message.request.response);
         }
       }
     };

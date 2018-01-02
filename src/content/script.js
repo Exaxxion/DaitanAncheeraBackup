@@ -99,16 +99,21 @@
       var $prtUserInfo      = $('.prt-user-info');
       var $prtInfoStatus    = $prtUserInfo.children('.prt-info-status');
       var $prtInfoPossessed = $prtUserInfo.children('.prt-info-possessed');
-      var $prtMbpPossessed  = $prtUserInfo.children('#mbp-status');
+      var $prtMbpStatus     = $prtInfoPossessed.eq(1).children('#mbp-status');
+      var $prtArcarumStatus = $prtInfoPossessed.eq(1).children('#arcarum-status');
 
       messageDevTools({profile: {
-        'rank':        $prtInfoStatus.find('.txt-rank-value').attr('title'),
-        'rankPercent': $prtInfoStatus.find('.prt-rank-gauge-inner').attr('style'),
-        'job':         $prtInfoStatus.find('.txt-joblv-value').attr('title'),
-        'jobPercent':  $prtInfoStatus.find('.prt-job-gauge-inner').attr('style'),
-        'jobPoints':   $prtInfoPossessed.eq(1).find('.prt-jp').text(),
-        'renown':      $prtMbpPossessed.find('.txt-current-point').eq(0).text(),
-        'prestige':    $prtMbpPossessed.find('.txt-current-point').eq(1).text()//$(this).text()
+        'rank':          $prtInfoStatus.find('.txt-rank-value').attr('title'),
+        'rankPercent':   $prtInfoStatus.find('.prt-rank-gauge-inner').attr('style'),
+        'job':           $prtInfoStatus.find('.txt-joblv-value').attr('title'),
+        'jobPercent':    $prtInfoStatus.find('.prt-job-gauge-inner').attr('style'),
+        'lupi':          $prtInfoPossessed.eq(0).find('.prt-lupi').text(),
+        'jobPoints':     $prtInfoPossessed.eq(0).find('.prt-jp').text(),
+        'crystal':       $prtInfoPossessed.eq(0).find('.prt-stone').text(),
+        'renown':        $prtMbpStatus.find('.txt-current-point').eq(0).text(),
+        'prestige':      $prtMbpStatus.find('.txt-current-point').eq(1).text(),
+        'arcarumTicket': $prtArcarumStatus.find('.prt-arcarum-passport-box').text(),
+        'arcapoints':    $prtArcarumStatus.find('.prt-arcarum-point-box').text()
       }});
     } else if (url.indexOf('#coopraid/room/') !== -1) {
       messageDevTools({ coopCode: $('.txt-room-id').eq(0).text() });

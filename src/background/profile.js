@@ -13,6 +13,8 @@
     zenithNextExp:   null,
     renown:          null,
     prestige:        null,
+    arcarumTicket:   null,
+    arcapoints:      null,
     casinoChips:     null,
     weaponNumber:    null,
     weaponMax:       null,
@@ -128,6 +130,9 @@
         tuples['zenithPercent'] = json.values.pc.job.zenith.after_exp_gauge + '%';
         tuples['zenithNextExp'] = profile['zenithNextExp'] -(parseInt(json.values.get_exp.job_exp) + parseInt(json.values.get_exp.job_exp_bonus));
       }
+      if (json.arcarum_info !== undefined) {
+        tuples['arcapoints'] = profile['arcapoints'] + parseInt(json.arcarum_info.point);
+      }
       var list = json.rewards.reward_list;
       var item;
       var category;
@@ -217,7 +222,6 @@
     Reduce: function(json, devID) {
       if (Options.Get('skipUpgradeResults')) {
         if (reduceReturnURL[devID] !== undefined) {
-          console.log(reduceReturnURL[devID]);
           Message.Post(devID, { 'openURL': reduceReturnURL[devID] });
         }
       }
@@ -297,7 +301,7 @@
     SpendCrystals: function(json) {
     },
 
-    SetHomeProfile: function(rank, rankPercent, job, jobPercent, jobPoints, renown, prestige) {
+    SetHomeProfile: function(rank, rankPercent, job, jobPercent, lupi, jobPoints, crystal, renown, prestige, arcarumTicket, arcapoints) {
       var tuples = {};
 
       tuples['level'] = rank;
@@ -314,8 +318,16 @@
         }
       }
 
+      if (!isNaN(lupi)) {
+        tuples['lupi'] = parseInt(lupi);
+      }
+
       if (!isNaN(jobPoints)) {
         tuples['jobPoints'] = parseInt(jobPoints);
+      }
+
+      if (!isNaN(crystal)) {
+        tuples['crystal'] = parseInt(crystal);
       }
 
       if (!isNaN(renown)) {
@@ -324,6 +336,14 @@
 
       if (!isNaN(prestige)) {
         tuples['prestige'] = parseInt(prestige);
+      }
+
+      if (arcarumTicket !== undefined) {
+        tuples['arcarumTicket'] = parseInt(arcarumTicket.substring(0, arcarumTicket.indexOf('/')));
+      }
+
+      if (arcapoints !== undefined) {
+        tuples['arcapoints'] = parseInt(arcapoints.substring(0, arcapoints.indexOf('/')));
       }
 
       setProfile(tuples);
@@ -474,6 +494,25 @@
           setProfile({'prestige': amt});
         }
       }
+    },
+
+    SetZenith: function(json) {
+      var zenith = json.job.zenith.lp_amount;
+      if (zenith !== undefined) {
+        var amt = parseInt(zenith);
+        setProfile({ 'zenith': amt });
+      }
+    },
+
+    StartArcarumStage: function(json) {
+      var tuples = {};
+      if (json.passport_num !== undefined) {
+        tuples['arcarumTicket'] = parseInt(json.passport_num);
+      }
+      if (json.point !== undefined) {
+        tuples['arcapoints'] = parseInt(json.point);
+      }
+      setProfile(tuples);
     },
   };
 
