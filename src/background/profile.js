@@ -317,26 +317,12 @@
           tuples['jobPercent'] = jobPercent.substring(jobPercent.indexOf(': ') + 2, jobPercent.indexOf(';'));
         }
       }
-
-      if (!isNaN(lupi)) {
-        tuples['lupi'] = parseInt(lupi);
-      }
-
-      if (!isNaN(jobPoints)) {
-        tuples['jobPoints'] = parseInt(jobPoints);
-      }
-
-      if (!isNaN(crystal)) {
-        tuples['crystal'] = parseInt(crystal);
-      }
-
-      if (!isNaN(renown)) {
-        tuples['renown'] = parseInt(renown);
-      }
-
-      if (!isNaN(prestige)) {
-        tuples['prestige'] = parseInt(prestige);
-      }
+      
+      tuples['lupi'] = parseInt(lupi);
+      tuples['jobPoints'] = parseInt(jobPoints);
+      tuples['crystal'] = parseInt(crystal);
+      tuples['renown'] = parseInt(renown);
+      tuples['prestige'] = parseInt(prestige);
 
       if (arcarumTicket !== undefined) {
         tuples['arcarumTicket'] = parseInt(arcarumTicket.substring(0, arcarumTicket.indexOf('/')));
@@ -344,6 +330,14 @@
 
       if (arcapoints !== undefined) {
         tuples['arcapoints'] = parseInt(arcapoints.substring(0, arcapoints.indexOf('/')));
+      }
+
+      for (var key in tuples) {
+        if (tuples.hasOwnProperty(key)) {
+          if (isNaN(tuples[key])) {
+            delete tuples[key];
+          }
+        }
       }
 
       setProfile(tuples);
