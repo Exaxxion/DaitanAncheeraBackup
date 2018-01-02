@@ -186,6 +186,7 @@
         return;
       }
       if (message.openURL) {
+        console.log(message.id);
         chrome.tabs.update(message.id, {'url': message.openURL});
         return;
       }
@@ -418,11 +419,11 @@
           Dailies.CheckRenown(message.request.response);
         }
         if (message.request.url.indexOf('evolution_weapon/evolution?') !== -1 || message.request.url.indexOf('evolution_summon/evolution?') !== -1) {
-          Profile.Uncap(message.request.response);
+          Profile.Uncap(message.request.response, message.request.url, message.id);
           Profile.BuyUncap();
         }
         if (message.request.url.indexOf('evolution_weapon/item_evolution?') !== -1 || message.request.url.indexOf('evolution_summon/item_evolution?') !== -1) {
-          Supplies.Uncap(message.request.response);
+          Supplies.Uncap(message.request.response, message.request.url, message.id);
           Profile.BuyUncap();
         }
         if (message.request.url.indexOf('item/evolution_items/') !== -1) {
@@ -440,7 +441,7 @@
           Supplies.SetNpcUncap(message.request.response);
         }
         if (message.request.url.indexOf('evolution_npc/item_evolution?') !== -1) {
-          Supplies.NpcUncap(message.request.response);
+          Supplies.NpcUncap(message.request.response, message.id);
           Profile.BuyUncap();
         }
         if (message.request.url.indexOf('weapon/weapon_material') !== -1 ||
@@ -559,7 +560,6 @@
     },
 
     OpenURL: function (url, devID) {
-      console.log(url);
       chrome.runtime.sendMessage({openURL: {
         url: url
       }});

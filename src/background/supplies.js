@@ -418,9 +418,21 @@
       nextUncap = null;
     },
 
-    Uncap: function(json) {
+    Uncap: function(json, url, devID) {
       if (nextUncap !== null && nextUncap !== undefined) {
         incrementSupply(nextUncap, 'powerUp', -1);
+      }
+
+      if (Options.Get('skipUpgradeResults')) {
+        var redirectURL = null;
+        if (url.indexOf('evolution_weapon/item_evolution?') !== -1) {
+          redirectURL = '#evolution/weapon/material';
+        } else if (url.indexOf('evolution_summon/item_evolution?') !== -1) {
+          redirectURL = '#evolution/summon/material';
+        }
+        if (redirectURL !== null) {
+          Message.Post(devID, { 'openURL': redirectURL });
+        }
       }
     },
 
@@ -450,7 +462,7 @@
       }
     },
 
-    NpcUncap: function(json) {
+    NpcUncap: function(json, devID) {
       var updated = [];
       var category;
       for (var i = 0; i < nextNpcUncap.length; i++) {
@@ -463,6 +475,11 @@
 
       for (var i = 0; i < updated.length; i++) {
         saveSupply(updated[i]);
+      }
+
+      if (Options.Get('skipUpgradeResults')) {
+        Message.Post(devID, { 'openURL': '#evolution/npc/material' });
+        Message.Post(devID, { 'openURL': '#evolution/npc/confirm' });
       }
     },
 

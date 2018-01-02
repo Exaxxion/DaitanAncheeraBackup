@@ -430,9 +430,20 @@
       }
     },
 
-    Uncap: function(json) {
+    Uncap: function(json, url, devID) {
       if (nextUncap !== null) {
         setProfile({[nextUncap]: profile[nextUncap] - 1});
+      }
+      if (Options.Get('skipUpgradeResults')) {
+        var redirectURL = null;
+        if (url.indexOf('evolution_weapon/evolution?') !== -1) {
+          redirectURL = '#evolution/weapon/material';
+        } else if (url.indexOf('evolution_summon/evolution?') !== -1) {
+          redirectURL = '#evolution/summon/material';
+        }
+        if (redirectURL !== null) {
+          Message.Post(devID, { 'openURL': redirectURL });
+        }
       }
     },
 
