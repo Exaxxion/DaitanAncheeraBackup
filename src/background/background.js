@@ -3,7 +3,7 @@
   var currURL    = '';
   var pageLoaded = true;
 
-  var CURRENT_VERSION = '1.1.2';
+  var CURRENT_VERSION = '1.1.4';
   var BASE_VERSION    = '1.0.1';
   var patchNotes = {
     '1.0.1': {
@@ -32,13 +32,27 @@
         '(also sorry no weapon drop tracking orz)',
         '-Tooltips added to repeat last quest',
         'and copy to clipboard buttons']
+    },
+    '1.1.3': {
+      'index': 4,
+      'notes': ['-Added arcarum ticketes to profile tracker',
+        '-Fixed profile tracker',
+        '-Skip upgrade/uncap results feature added',
+        '-Skip coop results feature added']
+    },
+    '1.1.4': {
+      'index': 5,
+      'notes': ['-Sync turn counter between windows feature added',
+        '(experimental and probably bug prone)']
     }
   };
   var patchNoteList = [
     '1.0.1',
     '1.1.0',
     '1.1.1',
-    '1.1.2'
+    '1.1.2',
+    '1.1.3',
+    '1.1.4'
   ];
   var currentVersion = undefined;
 
@@ -186,7 +200,6 @@
         return;
       }
       if (message.openURL) {
-        console.log(message.id);
         chrome.tabs.update(message.id, {'url': message.openURL});
         return;
       }
@@ -464,8 +477,12 @@
         if (message.request.url.indexOf('/raid/start.json?_=') !== -1 || message.request.url.indexOf('/multiraid/start.json?_=') !== -1) {
           Quest.StartBattle(message.request.response, message.id);
         }
-        if (message.request.url.indexOf('/normal_attack_result.json?_=') !== -1 || message.request.url.indexOf('/ability_result.json?_=') !== -1 || message.request.url.indexOf('/summon_result.json?_=') !== -1) {
+        if (message.request.url.indexOf('/ability_result.json?_=') !== -1 || message.request.url.indexOf('/summon_result.json?_=') !== -1) {
           Quest.BattleAction(message.request.response, message.request.payload, message.id);
+        }
+        if (message.request.url.indexOf('/normal_attack_result.json?_=')) {
+          Quest.BattleAction(message.request.response, message.request.payload, message.id);
+          Quest.UpdateTurnCounter(message.request.response, message.request.payload, message.id);
         }
         if (message.request.url.indexOf('/quest/init_list') !== -1) {
           Quest.SetCurrentQuest(message.request.response);

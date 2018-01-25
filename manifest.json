@@ -3,12 +3,13 @@
 
   "name": "Lyria",
   "description": "Granblue Fantasy Companion Extension.",
-  "version": "1.0.1",
+  "version": "1.1.4",
 
-  "icons": { "16": "src/assets/images/icon16.png",
-            "48":  "src/assets/images/icon48.png",
-            "128": "src/assets/images/icon128.png"
-            },
+  "icons": {
+    "16": "src/assets/images/icon16.png",
+    "48": "src/assets/images/icon48.png",
+    "128": "src/assets/images/icon128.png"
+  },
 
   "browser_action": {
     "default_icon": "src/assets/images/icon128.png"
@@ -37,11 +38,13 @@
     ]
   },
 
-  "content_scripts": [{
-    "matches": ["http://gbf.game.mbga.jp/*", "http://game.granbluefantasy.jp/*"],
-    "js": ["lib/jquery-3.0.0.min.js", "src/content/script.js"],
-    "run_at": "document_end"
-  }],
+  "content_scripts": [
+    {
+      "matches": [ "http://gbf.game.mbga.jp/*", "http://game.granbluefantasy.jp/*" ],
+      "js": [ "lib/jquery-3.0.0.min.js", "src/content/script.js" ],
+      "run_at": "document_end"
+    }
+  ],
 
   "permissions": [
     "http://gbf.game.mbga.jp/*",
@@ -53,5 +56,7 @@
     "activeTab"
   ],
 
-  "devtools_page": "src/pages/devtools/devtools.html"
+  "devtools_page": "src/pages/devtools/devtools.html",
+
+  "web_accessible_resources": ["src/content/inject.js"]
 }

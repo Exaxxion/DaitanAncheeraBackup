@@ -5,6 +5,7 @@
     skipNext:                  false,
     skipCoopResults:           false,
     skipUpgradeResults:        false,
+    syncTurnCounters:          false,
     enableNotifications:       true,
     muteNotifications:         false,
     apNotifications:           true,

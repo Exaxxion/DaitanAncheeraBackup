@@ -4,6 +4,9 @@
   });
 
   var tempImageURLS = {};
+  var gameState = {
+    'turn': 1
+  };
 
   chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
     if (message.pageLoad) {
@@ -57,6 +60,33 @@
           'type':      type
         }
       });
+    }
+
+    if (message.updateTurnCounter) {
+      gameState.turn = message.updateTurnCounter.turn;
+      updateTurnCounter(gameState.turn);
+    }
+  });
+
+  window.addEventListener('ancGameStateVarChange', function (evt) {
+    if (evt.detail.turn < gameState.turn) {
+      updateTurnCounter(gameState.turn);
+    } else {
+      gameState.turn = evt.detail.turn;
+    }
+  });
+
+  chrome.runtime.sendMessage({
+    getOption: 'syncTurnCounters'
+  }, function (response) {
+    if (response.value !== null) {
+      if (response.value) {
+        var s = document.createElement('script');
+        s.src = chrome.extension.getURL('src/content/inject.js');
+        s.type = 'text/javascript';
+        s.charset = 'utf-8';
+        document.getElementsByTagName("head")[0].appendChild(s);
+      }
     }
   });
 
@@ -167,5 +197,14 @@
       'sender': sender,
       'message': message
     }});
+  };
+
+  var updateTurnCounter = function(turn) {
+    var event = new CustomEvent('ancGameStateUpdateTurns', {
+      detail: {
+        'turn': turn,
+      }
+    });
+    window.dispatchEvent(event);
   };
 })();

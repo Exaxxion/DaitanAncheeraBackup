@@ -105,6 +105,7 @@ var options = [
   'skipNext',
   'skipCoopResults',
   'skipUpgradeResults',
+  'syncTurnCounters',
   'enableNotifications',
   'muteNotifications',
   'apNotifications',

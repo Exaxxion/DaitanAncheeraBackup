@@ -748,7 +748,10 @@
       if (quest !== null && quest.id === id) {
         quest.image = enemyImageURL + json.boss.param[0].cjs.substring(json.boss.param[0].cjs.lastIndexOf('_') + 1) + '.png';
         currQuest = quest;
-
+      } else if (quest === null && json.multi === 0) {
+        quest = createQuest(id, '#raid/', devID);
+        quest.image = enemyImageURL + json.boss.param[0].cjs.substring(json.boss.param[0].cjs.lastIndexOf('_') + 1) + '.png';
+        currQuest = quest;
       } else {
         var exists = false;
         var image = enemyImageURL + json.boss.param[0].cjs.substring(json.boss.param[0].cjs.lastIndexOf('_') + 1) + '.png';
@@ -814,7 +817,38 @@
         }
       }
       if (refresh) {
-        Message.Post(devID, {'openURL': currQuest.url + currQuest.id});
+        Message.Post(devID, { 'openURL': currQuest.url + currQuest.id });
+        //chrome.tabs.executeScript(devID, { "code": "history.go(-1);setTimeout(function() {history.go(1);}, 50);" });
+      }
+    },
+
+    UpdateTurnCounter: function (json, payload, devID) {
+      if (!Options.Get('syncTurnCounters')) {
+        return;
+      }
+      var id = '' + payload.raid_id;
+      var currQuest = null;
+      if (quest !== null && quest.id === id) {
+        currQuest = quest;
+
+      } else {
+        for (var i = 0; i < raids.length; i++) {
+          if (raids[i].id === id) {
+            currQuest = raids[i];
+            break;
+          }
+        }
+      }
+      if (currQuest === null) {
+        return;
+      }
+      for (var i = 0; i < currQuest.devIDs.length; i++) {
+        if (devID === currQuest.devIDs[i]) {
+          continue;
+        }
+        chrome.tabs.sendMessage(currQuest.devIDs[i], {'updateTurnCounter': {
+          'turn': json.status.turn
+        }});
       }
     },
 
