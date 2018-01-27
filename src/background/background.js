@@ -3,7 +3,7 @@
   var currURL    = '';
   var pageLoaded = true;
 
-  var CURRENT_VERSION = '1.1.4';
+  var CURRENT_VERSION = '1.1.5';
   var BASE_VERSION    = '1.0.1';
   var patchNotes = {
     '1.0.1': {
@@ -44,6 +44,11 @@
       'index': 5,
       'notes': ['-Sync turn counter between windows feature added',
         '(experimental and probably bug prone)']
+    },
+    '1.1.5': {
+      'index': 6,
+      'notes': ['-Improved turn sync between windows',
+        '-Also syncs enemy/boss HP between windows as requested']
     }
   };
   var patchNoteList = [
@@ -52,7 +57,8 @@
     '1.1.1',
     '1.1.2',
     '1.1.3',
-    '1.1.4'
+    '1.1.4',
+    '1.1.5'
   ];
   var currentVersion = undefined;
 
@@ -247,7 +253,7 @@
         //verify current ap/ep
         if (message.request.url.indexOf('/user/status?') !== -1 ||
             message.request.url.indexOf('/user/data_assets?') !== -1 ||
-            message.request.url.indexOf('/user/content/index?') !== -1 ||
+            //message.request.url.indexOf('/user/content/index?') !== -1 ||
             message.request.url.indexOf('/quest/content/') !== -1 ||
             message.request.url.indexOf('/coopraid/content/') !== -1) {
           APBP.VerifyAPBP(message.request.response);
@@ -477,10 +483,7 @@
         if (message.request.url.indexOf('/raid/start.json?_=') !== -1 || message.request.url.indexOf('/multiraid/start.json?_=') !== -1) {
           Quest.StartBattle(message.request.response, message.id);
         }
-        if (message.request.url.indexOf('/ability_result.json?_=') !== -1 || message.request.url.indexOf('/summon_result.json?_=') !== -1) {
-          Quest.BattleAction(message.request.response, message.request.payload, message.id);
-        }
-        if (message.request.url.indexOf('/normal_attack_result.json?_=')) {
+        if (message.request.url.indexOf('/normal_attack_result.json?_=') !== -1 || message.request.url.indexOf('/ability_result.json?_=') !== -1 || message.request.url.indexOf('/summon_result.json?_=') !== -1) {
           Quest.BattleAction(message.request.response, message.request.payload, message.id);
           Quest.UpdateTurnCounter(message.request.response, message.request.payload, message.id);
         }

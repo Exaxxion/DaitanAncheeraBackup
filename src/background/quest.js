@@ -340,14 +340,14 @@
 
     //var enemies = [null, null, null];
 
-  var createEnemy = function(image, currHP, maxHP, currCharge, maxCharge, mode) {
+  var createEnemy = function(currHP, maxHP) {
     return {
-      image:      image,
+      image:      null,
       currHP:     currHP,
       maxHP:      maxHP,
-      currCharge: currCharge,
-      maxCharge:  maxCharge,
-      mode:       mode,
+      currCharge: null,
+      maxCharge:  null,
+      mode:       null,
       debuffs:    []
     };
   };
@@ -772,6 +772,27 @@
       if (currQuest.devIDs.indexOf(devID) === -1) {
         currQuest.devIDs.push(devID);
       }
+      if (json.boss && json.boss.param) {
+        for (var i = 0; i < json.boss.param.length; i++) {
+          if (currQuest.enemies[i] === null) {
+            currQuest.enemies[i] = createEnemy(json.boss.param[i].hp, json.boss.param[i].hpmax);
+          } else {
+            currQuest.enemies[i].currHP = json.boss.param[i].hp;
+            currQuest.enemies[i].maxHP = json.boss.param[i].hpmax;
+          }
+        }
+      }
+      if (Options.Get('syncTurnCounters')) {
+        chrome.tabs.sendMessage(devID, {
+          'updateTurnCounter': {
+            'type': 'start',
+            'turn': json.turn,
+            'raid_id': currQuest.id,
+            'boss': currQuest.enemies,
+            'ignoredEnemyHPValues': null
+          }
+        });
+      }
       setQuestsJQuery();
     },
 
@@ -842,13 +863,113 @@
       if (currQuest === null) {
         return;
       }
+      var ignoredEnemyHPValues = [[], [], []];
+      if (json.scenario) {
+        for (var i = 0; i < json.scenario.length; i++) {
+          switch (json.scenario[i].cmd) {
+            // only worry about these cases
+            case 'boss_gauge':
+              if (currQuest.enemies[json.scenario[i].pos] === null) {
+                currQuest.enemies[json.scenario[i].pos] = createEnemy(json.scenario[i].hp, json.scenario[i].hpmax);
+              } else {
+                currQuest.enemies[json.scenario[i].pos].currHP = json.scenario[i].hp;
+                currQuest.enemies[json.scenario[i].pos].maxHP = json.scenario[i].hpmax;
+              }
+            case 'attack':
+              if (json.scenario[i].from && json.scenario[i].from !== 'player') {
+                break;
+              }
+              if (json.scenario[i].to && json.scenario[i].to !== 'boss') {
+                break;
+              }
+              if (json.scenario[i].damage !== undefined) {
+                for (var j = 0; j < json.scenario[i].damage.length; j++) {
+                  for (var k = 0; k < json.scenario[i].damage[j].length; k++) {
+                    if (isNaN(json.scenario[i].damage[j][k].hp) || isNaN(json.scenario[i].damage[j][k].pos)) {
+                      continue;
+                    }
+                    ignoredEnemyHPValues[json.scenario[i].damage[j][k].pos].push(json.scenario[i].damage[j][k].hp);
+                  }
+                }
+              }
+              break;
+            // ougi and summon handler
+            case 'summon':
+            case 'special':
+            case 'special_npc':
+              if (json.scenario[i].from && json.scenario[i].from !== 'player') {
+                break;
+              }
+              if (json.scenario[i].to && json.scenario[i].to !== 'boss') {
+                break;
+              }
+              if (json.scenario[i].list !== undefined) {
+                if (json.scenario[i].list[0].damage.length === 0) {
+                  break;
+                }
+                for (var j = 0; j < json.scenario[i].list.length; j++) {
+                  for (var k = 0; k < json.scenario[i].list[j].damage.length; k++) {
+                    if (isNaN(json.scenario[i].list[j].damage[k].hp) || isNaN(json.scenario[i].list[j].damage[k].pos)) {
+                      continue;
+                    }
+                    ignoredEnemyHPValues[json.scenario[i].list[j].damage[k].pos].push(json.scenario[i].list[j].damage[k].hp);
+                  }
+                }
+              }
+              break;
+            // ability and other damage handler
+            case 'damage':
+              if (json.scenario[i].from && json.scenario[i].from !== 'player') {
+                break;
+              }
+              if (json.scenario[i].to && json.scenario[i].to !== 'boss') {
+                break;
+              }
+              if (json.scenario[i].list !== undefined) {
+                for (var j = 0; j < json.scenario[i].list.length; j++) {
+                  if (isNaN(json.scenario[i].list[j].hp)) {
+                    continue;
+                  }
+                  ignoredEnemyHPValues[json.scenario[i].list[j].pos].push(json.scenario[i].list[j].hp);
+                }
+              }
+              break;
+            default:
+              break;
+          }
+        }
+      }
+      for (var i = 0; i < ignoredEnemyHPValues.length; i++) {
+        if (currQuest.enemies[i] !== null) {
+          for (var j = 0; j < ignoredEnemyHPValues[i].length; j++) {
+            if (ignoredEnemyHPValues[i][j] === currQuest.enemies[i].currHP) {
+              ignoredEnemyHPValues[i].splice(j, 1);
+              break;
+            }
+          }
+          ignoredEnemyHPValues[i].push(currQuest.enemies[i].currHP);
+        }
+      }
       for (var i = 0; i < currQuest.devIDs.length; i++) {
         if (devID === currQuest.devIDs[i]) {
-          continue;
+          chrome.tabs.sendMessage(currQuest.devIDs[i], {
+            'updateTurnCounter': {
+              'type': 'battle',
+              'turn': json.status.turn,
+              'raid_id': currQuest.id,
+              'boss': currQuest.enemies,
+              'ignoredEnemyHPValues': ignoredEnemyHPValues
+            }
+          });
+        } else {
+          chrome.tabs.sendMessage(currQuest.devIDs[i], {'updateTurnCounter': {
+            'type': 'battle',
+            'turn': json.status.turn,
+            'raid_id': currQuest.id,
+            'boss': currQuest.enemies,
+            'ignoredEnemyHPValues': null
+          }});
         }
-        chrome.tabs.sendMessage(currQuest.devIDs[i], {'updateTurnCounter': {
-          'turn': json.status.turn
-        }});
       }
     },
 

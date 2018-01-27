@@ -5,7 +5,9 @@
 
   var tempImageURLS = {};
   var gameState = {
-    'turn': 1
+    'turn': 1,
+    'raid_id': null,
+    'enemies': [null, null, null]
   };
 
   chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
@@ -63,17 +65,31 @@
     }
 
     if (message.updateTurnCounter) {
-      gameState.turn = message.updateTurnCounter.turn;
-      updateTurnCounter(gameState.turn);
+      if (message.updateTurnCounter.type === "start") {
+        gameState.raid_id = message.updateTurnCounter.raid_id;
+        updateGameState(message.updateTurnCounter);
+      } else if (message.updateTurnCounter.raid_id === gameState.raid_id) {
+        updateGameState(message.updateTurnCounter);
+      }
     }
   });
 
   window.addEventListener('ancGameStateVarChange', function (evt) {
-    if (evt.detail.turn < gameState.turn) {
-      updateTurnCounter(gameState.turn);
+    var id = '' + evt.detail.raid_id;
+    if (id !== gameState.raid_id) {
+      console.log("gs");
+      console.log(gameState);
+      gameState.raid_id = id;
+      gameState.turn = evt.detail.turn;
+    } else if (evt.detail.turn < gameState.turn) {
+      updateClient(gs, null);
     } else {
       gameState.turn = evt.detail.turn;
     }
+  });
+
+  window.addEventListener('ancConsoleLog', function (evt) {
+    console.log(evt.detail.msg);
   });
 
   chrome.runtime.sendMessage({
@@ -82,9 +98,9 @@
     if (response.value !== null) {
       if (response.value) {
         var s = document.createElement('script');
-        s.src = chrome.extension.getURL('src/content/inject.js');
         s.type = 'text/javascript';
         s.charset = 'utf-8';
+        s.src = chrome.extension.getURL('src/content/inject.js');
         document.getElementsByTagName("head")[0].appendChild(s);
       }
     }
@@ -199,10 +215,24 @@
     }});
   };
 
-  var updateTurnCounter = function(turn) {
-    var event = new CustomEvent('ancGameStateUpdateTurns', {
+  var updateGameState = function(gs) {
+    gameState.turn = gs.turn;
+    for (var i = 0; i < gameState.enemies.length; i++) {
+      if (gs.boss[i] !== undefined && gs.boss[i] !== null) {
+        gameState.enemies[i] = gs.boss[i];
+      } else {
+        gameState.enemies[i] = null;
+      }
+    }
+    updateClient(gameState, gs.ignoredEnemyHPValues);
+  }
+
+  var updateClient = function(gs, ignoredEnemyHPValues) {
+    var event = new CustomEvent('ancUpdateGameState', {
       detail: {
-        'turn': turn,
+        'turn': gs.turn,
+        'enemies': gs.enemies,
+        'ignoredEnemyHPValues': ignoredEnemyHPValues
       }
     });
     window.dispatchEvent(event);

@@ -3,7 +3,7 @@
 
   "name": "Lyria",
   "description": "Granblue Fantasy Companion Extension.",
-  "version": "1.1.4",
+  "version": "1.1.5",
 
   "icons": {
     "16": "src/assets/images/icon16.png",
@@ -58,5 +58,5 @@
 
   "devtools_page": "src/pages/devtools/devtools.html",
 
-  "web_accessible_resources": ["src/content/inject.js"]
+  "web_accessible_resources": [ "src/content/inject.js" ]
 }
