@@ -69,23 +69,23 @@
   }
 
   window.addEventListener('ancUpdateGameState', function (evt) {
+    gameVars.gs.turn = evt.detail.turn;
+    for (var i = 0; i < evt.detail.enemies.length; i++) {
+      if (typeof evt.detail.enemies[i] !== "undefined" && evt.detail.enemies[i] !== null) {
+        gameVars.gs.boss.param[i].hp = evt.detail.enemies[i].currHP;
+        gameVars.gs.boss.param[i].hpmax = evt.detail.enemies[i].maxHP;
+      }
+    }
+    if (evt.detail.ignoredEnemyHPValues !== null) {
+      for (var i = 0; i < evt.detail.ignoredEnemyHPValues.length; i++) {
+        if (typeof evt.detail.ignoredEnemyHPValues[i] !== "undefined" && evt.detail.ignoredEnemyHPValues[i] !== null && evt.detail.ignoredEnemyHPValues[i].length !== 0) {
+          gameVars.gs.boss.param[i].hpignored = evt.detail.ignoredEnemyHPValues[i];
+        }
+      }
+    }
     if (typeof stage !== "undefined" && stage !== null) {
       if (typeof stage.gGameStatus !== "undefined" && stage !== null) {
         stage.gGameStatus.turn = evt.detail.turn;
-        gameVars.gs.turn = evt.detail.turn;
-        for (var i = 0; i < evt.detail.enemies.length; i++) {
-          if (typeof evt.detail.enemies[i] !== "undefined" && evt.detail.enemies[i] !== null) {
-            gameVars.gs.boss.param[i].hp = evt.detail.enemies[i].currHP;
-            gameVars.gs.boss.param[i].hpmax = evt.detail.enemies[i].maxHP;
-          }
-        }
-        if (evt.detail.ignoredEnemyHPValues !== null) {
-          for (var i = 0; i < evt.detail.ignoredEnemyHPValues.length; i++) {
-            if (typeof evt.detail.ignoredEnemyHPValues[i] !== "undefined" && evt.detail.ignoredEnemyHPValues[i] !== null && evt.detail.ignoredEnemyHPValues[i].length !== 0) {
-              gameVars.gs.boss.param[i].hpignored = evt.detail.ignoredEnemyHPValues[i];
-            }
-          }
-        }
       }
     }
   });

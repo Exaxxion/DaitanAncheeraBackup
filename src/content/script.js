@@ -68,6 +68,7 @@
       if (message.updateTurnCounter.type === "start") {
         gameState.raid_id = message.updateTurnCounter.raid_id;
         updateGameState(message.updateTurnCounter);
+        console.log(message.updateTurnCounter);
       } else if (message.updateTurnCounter.raid_id === gameState.raid_id) {
         updateGameState(message.updateTurnCounter);
       }
