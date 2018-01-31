@@ -68,7 +68,6 @@
       if (message.updateTurnCounter.type === "start") {
         gameState.raid_id = message.updateTurnCounter.raid_id;
         updateGameState(message.updateTurnCounter);
-        console.log(message.updateTurnCounter);
       } else if (message.updateTurnCounter.raid_id === gameState.raid_id) {
         updateGameState(message.updateTurnCounter);
       }
@@ -78,8 +77,6 @@
   window.addEventListener('ancGameStateVarChange', function (evt) {
     var id = '' + evt.detail.raid_id;
     if (id !== gameState.raid_id) {
-      console.log("gs");
-      console.log(gameState);
       gameState.raid_id = id;
       gameState.turn = evt.detail.turn;
     } else if (evt.detail.turn < gameState.turn) {
@@ -93,18 +90,20 @@
     console.log(evt.detail.msg);
   });
 
-  chrome.runtime.sendMessage({
-    getOption: 'syncTurnCounters'
-  }, function (response) {
-    if (response.value !== null) {
-      if (response.value) {
-        var s = document.createElement('script');
-        s.type = 'text/javascript';
-        s.charset = 'utf-8';
-        s.src = chrome.extension.getURL('src/content/inject.js');
-        document.getElementsByTagName("head")[0].appendChild(s);
+  $(document).ready(function () {
+    chrome.runtime.sendMessage({
+      getOption: 'syncTurnCounters'
+    }, function (response) {
+      if (response.value !== null) {
+        if (response.value) {
+          var s = document.createElement('script');
+          s.type = 'text/javascript';
+          s.charset = 'utf-8';
+          s.src = chrome.extension.getURL('src/content/inject.js');
+          document.getElementsByTagName("head")[0].appendChild(s);
+        }
       }
-    }
+    });
   });
 
   var pageLoad = function(url) {

@@ -659,37 +659,35 @@
     },
 
     CreateQuest: function(json, payload, devID) {
-      if (json.result !== undefined && json.result === 'ok') {
-        // TODO: Why is this a global? Who's using it?
-        quest = createQuest(json.raid_id, '#raid/', devID);
-        var id = '' + payload.quest_id;
-        if (id !== undefined) {
-          if (remainingQuests[id] !== undefined) {
-            setRemainingRaids(id, remainingQuests[id] - 1);
-            saveRemainingRaids();
-            if (raidInfo[id].animeIDs !== null && payload.use_item_id !== undefined) {
-              var index = raidInfo[id].animeIDs.indexOf(payload.use_item_id);
-              Supplies.Increment(raidInfo[id].animeIDs[index], '10', -raidInfo[id].animeCounts[index]);
-            }
+      // TODO: Why is this a global? Who's using it?
+      quest = createQuest(json.raid_id, '#raid/', devID);
+      var id = '' + payload.quest_id;
+      if (id !== undefined) {
+        if (remainingQuests[id] !== undefined) {
+          setRemainingRaids(id, remainingQuests[id] - 1);
+          saveRemainingRaids();
+          if (raidInfo[id].animeIDs !== null && payload.use_item_id !== undefined) {
+            var index = raidInfo[id].animeIDs.indexOf(payload.use_item_id);
+            Supplies.Increment(raidInfo[id].animeIDs[index], '10', -raidInfo[id].animeCounts[index]);
           }
-          for (var i = 0; i < events.length; i++) {
-            if (events[i].bossID !== null) {
-              for (var j = 0; j < events[i].bosses.length; j++) {
-                if (id === (events[i].bossID + events[i].bosses[j].id)) {
-                  APBP.InitializeQuest({'action_point': events[i].bosses[j].ap});
-                  if (events[i].currency1 !== null) {
-                    Supplies.Increment(events[i].currency1, '10', -events[i].bosses[j].currency1);
-                  }
-                  if (events[i].currency2 !== null) {
-                    Supplies.Increment(events[i].currency2, '10', -events[i].bosses[j].currency2);
-                  }
+        }
+        for (var i = 0; i < events.length; i++) {
+          if (events[i].bossID !== null) {
+            for (var j = 0; j < events[i].bosses.length; j++) {
+              if (id === (events[i].bossID + events[i].bosses[j].id)) {
+                APBP.InitializeQuest({'action_point': events[i].bosses[j].ap});
+                if (events[i].currency1 !== null) {
+                  Supplies.Increment(events[i].currency1, '10', -events[i].bosses[j].currency1);
+                }
+                if (events[i].currency2 !== null) {
+                  Supplies.Increment(events[i].currency2, '10', -events[i].bosses[j].currency2);
                 }
               }
             }
           }
         }
-        setQuestsJQuery();
       }
+      setQuestsJQuery();
     },
 
     CheckMulti: function(json) {
@@ -909,9 +907,6 @@
                 }
                 for (var j = 0; j < json.scenario[i].list.length; j++) {
                   for (var k = 0; k < json.scenario[i].list[j].damage.length; k++) {
-                    if (isNaN(json.scenario[i].list[j].damage[k].hp) || isNaN(json.scenario[i].list[j].damage[k].pos)) {
-                      continue;
-                    }
                     ignoredEnemyHPValues[json.scenario[i].list[j].damage[k].pos].push(json.scenario[i].list[j].damage[k].hp);
                   }
                 }
@@ -927,9 +922,6 @@
               }
               if (json.scenario[i].list !== undefined) {
                 for (var j = 0; j < json.scenario[i].list.length; j++) {
-                  if (isNaN(json.scenario[i].list[j].hp)) {
-                    continue;
-                  }
                   ignoredEnemyHPValues[json.scenario[i].list[j].pos].push(json.scenario[i].list[j].hp);
                 }
               }
