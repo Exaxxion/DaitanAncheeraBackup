@@ -47,7 +47,7 @@
           var gs = evt.detail.gameState;
           if ((options.syncAll || options.syncTurns) && gs.turn !== null && gs.turn > 0) {
             gameVars.gs.turn = gs.turn;
-            stage.gGameStatus.turn = gs.turn;
+            updateTurns();
           }
           if (options.syncAll || options.syncBossHP) {
             if (gs.ignoredEnemyHPValues !== null) {
@@ -85,15 +85,14 @@
     }
   });
 
-  function updateTurns(turn) {
+  function updateTurns() {
     if (!options.syncAll && !options.syncTurns) {
       return;
     }
-    if (turn < gameVars.gs.turn) {
+    if (stage.gGameStatus.turn < gameVars.gs.turn) {
       stage.gGameStatus.turn = gameVars.gs.turn;
-    } else if (stage.gGameStatus.turn !== gameVars.gs.turn) {
-      stage.gGameStatus.turn = turn;
-      gameVars.gs.turn = turn;
+    } else {
+      gameVars.gs.turn = stage.gGameStatus.turn;
     }
   }
 
@@ -163,12 +162,12 @@
                   gameVars.gs.boss.param[i].hpignored = [];
                 }
               }
-              updateTurns(stage.gGameStatus.turn);
+              updateTurns();
             }
             if (trigger.turnCounter === undefined) {
               if ($('.prt-turn-info').length) {
                 new MutationObserver(function (mutations) {
-                  gameVars.gs.turn = stage.gGameStatus.turn;
+                  updateTurns();
                 }).observe(document.getElementsByClassName('prt-turn-info')[0], { attributes: true, attributeOldValue: true, characterData: false, subtree: true, childList: true });
                 trigger.turnCounter = true;
               }
