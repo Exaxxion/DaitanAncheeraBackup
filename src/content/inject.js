@@ -1,101 +1,89 @@
 "use strict";
 (function () {
-  var gameVarsExist = false;
-  var gameVars = {
-    'gs': {
-      'turn': 1,
-      'attacking': 0,
-      'raid_id': null,
-      'boss': {
-        'param': [
-          {
-            'hp': 0,
-            'hpmax': 0,
-            'hpignored': []
-          }, {
-            'hp': 0,
-            'hpmax': 0,
-            'hpignored': []
-          }, {
-            'hp': 0,
-            'hpmax': 0,
-            'hpignored': []
+  var gameVarsExist = false,
+    gameVars = {
+      'gs': {
+        'turn': -1,
+        'attacking': 0,
+        'raid_id': null,
+        'boss': {
+          'param': [
+            {
+              'hp': 0,
+              'hpmax': 0,
+              'hpignored': []
+            }, {
+              'hp': 0,
+              'hpmax': 0,
+              'hpignored': []
+            }, {
+              'hp': 0,
+              'hpmax': 0,
+              'hpignored': []
+            }
+          ]
+        }
+      }
+    },
+    lockBossHP = false,
+    trigger = [],
+    options = {
+      syncAll: false,
+      syncTurns: false,
+      syncBossHP: false
+    };
+
+  var event = new CustomEvent('ancClientMessage', {
+    detail: {
+      'requestSyncOptions': true
+    }
+  });
+  setTimeout(function () { window.dispatchEvent(event); }, 1000);
+
+  window.addEventListener('ancUpdateClient', function (evt) {
+    if (typeof evt.detail.gameState !== "undefined") {
+      if (typeof stage !== "undefined" && stage !== null) {
+        if (typeof stage.gGameStatus !== "undefined" && stage !== null) {
+          var gs = evt.detail.gameState;
+          if ((options.syncAll || options.syncTurns) && gs.turn !== null && gs.turn > 0) {
+            gameVars.gs.turn = gs.turn;
+            stage.gGameStatus.turn = gs.turn;
           }
-        ]
-      }
-    }
-  };
-  var lockBossHP = false;
-  var trigger = [];
-
-  if (!Object.prototype.watch) {
-    Object.defineProperty(Object.prototype, "watch", {
-      enumerable: false,
-      configurable: true,
-      writable: false,
-      value: function (prop, handler) {
-        var
-          oldval = this[prop],
-          newval = oldval,
-          getter = function () {
-            return newval;
-          },
-          setter = function (val) {
-            oldval = newval;
-            return newval = handler.call(this, prop, oldval, val);
-          };
-
-        if (delete this[prop]) {
-          Object.defineProperty(this, prop, {
-            get: getter,
-            set: setter,
-            enumerable: true,
-            configurable: true
-          });
-        }
-      }
-    });
-  }
-  if (!Object.prototype.unwatch) {
-    Object.defineProperty(Object.prototype, "unwatch", {
-      enumerable: false,
-      configurable: true,
-      writable: false,
-      value: function (prop) {
-        var val = this[prop];
-        delete this[prop];
-        this[prop] = val;
-      }
-    });
-  }
-
-  window.addEventListener('ancUpdateGameState', function (evt) {
-    if (typeof stage === "undefined" && stage === null) {
-      return;
-    }
-    if (typeof stage.gGameStatus === "undefined" && stage === null) {
-      return;
-    }
-    gameVars.gs.turn = evt.detail.turn;
-    stage.gGameStatus.turn = evt.detail.turn;
-    for (var i = 0; i < evt.detail.enemies.length; i++) {
-      if (typeof evt.detail.enemies[i] !== "undefined" && evt.detail.enemies[i] !== null) {
-        gameVars.gs.boss.param[i].hp = evt.detail.enemies[i].currHP;
-        gameVars.gs.boss.param[i].hpmax = evt.detail.enemies[i].maxHP;
-        stage.gGameStatus.boss.param[i].hp = gameVars.gs.boss.param[i].hp;
-        stage.gGameStatus.boss.param[i].hpmax = gameVars.gs.boss.param[i].hpmax;
-      }
-    }
-    if (evt.detail.ignoredEnemyHPValues !== null) {
-      for (var i = 0; i < evt.detail.ignoredEnemyHPValues.length; i++) {
-        if (typeof evt.detail.ignoredEnemyHPValues[i] !== "undefined" && evt.detail.ignoredEnemyHPValues[i] !== null && evt.detail.ignoredEnemyHPValues[i].length) {
-          gameVars.gs.boss.param[i].hpignored = evt.detail.ignoredEnemyHPValues[i];
+          if (options.syncAll || options.syncBossHP) {
+            if (gs.ignoredEnemyHPValues !== null) {
+              for (var i = 0; i < gs.enemies.length; i++) {
+                if (typeof gs.enemies[i] !== "undefined" && gs.enemies[i] !== null) {
+                  gameVars.gs.boss.param[i].hp = gs.enemies[i].currHP;
+                  gameVars.gs.boss.param[i].hpmax = gs.enemies[i].maxHP;
+                  stage.gGameStatus.boss.param[i].hp = gameVars.gs.boss.param[i].hp;
+                  stage.gGameStatus.boss.param[i].hpmax = gameVars.gs.boss.param[i].hpmax;
+                }
+              }
+            }
+            if (gs.ignoredEnemyHPValues !== null) {
+              for (var i = 0; i < gs.ignoredEnemyHPValues.length; i++) {
+                if (typeof gs.ignoredEnemyHPValues[i] !== "undefined" && gs.ignoredEnemyHPValues[i] !== null && gs.ignoredEnemyHPValues[i].length) {
+                  gameVars.gs.boss.param[i].hpignored = gs.ignoredEnemyHPValues[i];
+                }
+              }
+            }
+          }
         }
       }
     }
+    if (typeof evt.detail.updateAllSyncOptions !== "undefined") {
+      options = evt.detail.updateAllSyncOptions.options;
+    }
+    if (typeof evt.detail.updateSyncOptions !== "undefined") {
+      options[evt.detail.updateSyncOptions.key] = evt.detail.updateSyncOptions.val;
+    }
+    consoleLog(options);
   });
 
   function updateTurns(turn) {
+    if (!options.syncAll && !options.syncTurns) {
+      return;
+    }
     if (turn < gameVars.gs.turn) {
       stage.gGameStatus.turn = gameVars.gs.turn;
     } else if (stage.gGameStatus.turn !== gameVars.gs.turn) {
@@ -105,9 +93,11 @@
   }
 
   function consoleLog(msg) {
-    var event = new CustomEvent('ancConsoleLog', {
+    var event = new CustomEvent('ancClientMessage', {
       detail: {
-        'msg': msg
+        'consoleLog': {
+          'msg': msg
+        }
       }
     });
     window.dispatchEvent(event);
@@ -159,44 +149,44 @@
     mutations.forEach(function (mutation) {
       if (typeof stage !== "undefined" && stage !== null) {
         if (typeof stage.gGameStatus !== "undefined" && stage.gGameStatus !== null) {
-          if (!gameVarsExist) {
-            gameVarsExist = true;
-            updateTurns(stage.gGameStatus.turn);
-            stage.gGameStatus.watch('attacking', function (paramName, oldVal, newVal) {
-              if (newVal === 0) {
+          if (options.syncAll || options.syncTurns) {
+            if (gameVars.gs.attacking !== stage.gGameStatus.attacking) {
+              gameVars.gs.attacking = stage.gGameStatus.attacking;
+              if (gameVars.gs.attacking === 0) {
                 lockBossHP = false;
                 for (var i = 0; i < stage.gGameStatus.boss.param.length; i++) {
                   gameVars.gs.boss.param[i].hpignored = [];
                 }
               }
-              gameVars.gs.attacking = newVal;
               updateTurns(stage.gGameStatus.turn);
-            });
-          }
-          if (trigger.turnCounter === undefined) {
-            if ($('.prt-turn-info').length) {
-              new MutationObserver(function (mutations) {
-                stage.gGameStatus.turn = gameVars.gs.turn;
-              }).observe(document.getElementsByClassName('prt-turn-info')[0], { attributes: true, attributeOldValue: true, characterData: false, subtree: true, childList: true });
-              trigger.turnCounter = true;
+            }
+            if (trigger.turnCounter === undefined) {
+              if ($('.prt-turn-info').length) {
+                new MutationObserver(function (mutations) {
+                  gameVars.gs.turn = stage.gGameStatus.turn;
+                }).observe(document.getElementsByClassName('prt-turn-info')[0], { attributes: true, attributeOldValue: true, characterData: false, subtree: true, childList: true });
+                trigger.turnCounter = true;
+              }
             }
           }
-          if (trigger.enemyHP0 === undefined) {
-            if ($('#enemy-hp0').length) {
-              observeEnemyHP(0);
-              trigger.enemyHP0 = true;
+          if (options.syncAll || options.syncBossHP) {
+            if (trigger.enemyHP0 === undefined) {
+              if ($('#enemy-hp0').length) {
+                observeEnemyHP(0);
+                trigger.enemyHP0 = true;
+              }
             }
-          }
-          if (trigger.enemyHP1 === undefined) {
-            if ($('#enemy-hp1').length) {
-              observeEnemyHP(1);
-              trigger.enemyHP1 = true;
+            if (trigger.enemyHP1 === undefined) {
+              if ($('#enemy-hp1').length) {
+                observeEnemyHP(1);
+                trigger.enemyHP1 = true;
+              }
             }
-          }
-          if (trigger.enemyHP2 === undefined) {
-            if ($('#enemy-hp2').length) {
-              observeEnemyHP(2);
-              trigger.enemyHP2 = true;
+            if (trigger.enemyHP2 === undefined) {
+              if ($('#enemy-hp2').length) {
+                observeEnemyHP(2);
+                trigger.enemyHP2 = true;
+              }
             }
           }
         }
@@ -204,19 +194,16 @@
     });
   }).observe(document, { attributes: true, attributeOldValue: true, characterData: false, subtree: true, childList: true });
   window.addEventListener("hashchange", function (event) {
-    if (gameVarsExist) {
-      gameVarsExist = false;
-    }
-    if (trigger.turnCounter !== undefined) {
+    if (typeof trigger.turnCounter !== "undefined") {
       delete trigger.turnCounter;
     }
-    if (trigger.enemyHP0 !== undefined) {
+    if (typeof trigger.enemyHP0 !== "undefined") {
       delete trigger.enemyHP0;
     }
-    if (trigger.enemyHP1 !== undefined) {
+    if (typeof trigger.enemyHP1 !== "undefined") {
       delete trigger.enemyHP1;
     }
-    if (trigger.enemyHP2 !== undefined) {
+    if (typeof trigger.enemyHP2 !== "undefined") {
       delete trigger.enemyHP2;
     }
   });

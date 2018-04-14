@@ -20,6 +20,7 @@
 
   var updatedSupplies = [];
   var sortedSupplies  = [];
+  var pendingGifts    = {};
   var filter          = 'all';
   var search          = '';
   var nextUncap       = null;
@@ -274,22 +275,34 @@
       }
     },
 
-    GetGift: function(json) {
+    ReceiveGift: function(json, devID) {
       var id       = json.item_id;
       var category = getCategory(id, json.item_kind_id);
-      if (category !== undefined && incrementSupply(id, category, parseInt(json.number))) {
+      if (category !== undefined && incrementSupply(item.item_id, category, parseInt(item.number))) {
         saveSupply(category);
       }
     },
 
-    GetAllGifts: function(json) {
+    GetAllGifts: function(json, devID) {
       var item;
       var category;
-      var updated = [];
+      pendingGifts[devID] = [];
       for (var i = 0; i < json.presents.length; i++) {
         item     = json.presents[i];
         category = getCategory(item.item_id, item.item_kind_id);
-        if (category !== undefined && incrementSupply(item.item_id, category, parseInt(item.number))) {
+        if (category !== undefined && supplies[category][id] !== undefined) {
+          pendingGifts.push({ 'id' : item.item_id, 'category': category, 'qty': parseInt(json.number) });
+        }
+      }
+    },
+
+    ReceiveAllGifts: function (json, devID) {
+      // TODO: find and remove json.already_received from pendingGifts 
+      var category;
+      var updated = [];
+      for (var i = 0; i < pendingGifts[devID].length; i++) {
+        category = pendingGifts[devID][i].category;
+        if (category !== undefined && incrementSupply(pendingGifts[devID][i].id, category, pendingGifts[devID][i].qty)) {
           if (updated.indexOf(category) === -1) {
             updated.push(category);
           }
@@ -430,7 +443,7 @@
         } else if (url.indexOf('evolution_summon/item_evolution?') !== -1) {
           redirectURL = '#evolution/summon/material';
         }
-        if (redirectURL !== null) {
+        if (redirectURL !== null) {https://i.imgur.com/Ih4HjKj.png
           Message.Post(devID, { 'openURL': redirectURL });
         }
       }

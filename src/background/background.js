@@ -3,7 +3,7 @@
   var currURL    = '';
   var pageLoaded = true;
 
-  var CURRENT_VERSION = '1.1.5';
+  var CURRENT_VERSION = '1.2.0';
   var BASE_VERSION    = '1.0.1';
   var patchNotes = {
     '1.0.1': {
@@ -49,6 +49,16 @@
       'index': 6,
       'notes': ['-Improved turn sync between windows',
         '-Also syncs enemy/boss HP between windows as requested']
+    },
+    '1.2.0': {
+      'index': 7,
+      'notes': ['-Bunch of bug fixes',
+        '-Separated multiwindow sync options',
+        '-Fixed some multiwindow sync issues on refresh',
+        '-Sped up refresh by using back/forward instead of refresh',
+        '-Added a refresh option for all attacks',
+        '-Fixed autoend quest to work with multiple self-hosted quests',
+        '-Added a nightmare/special quest notification']
     }
   };
   var patchNoteList = [
@@ -58,7 +68,8 @@
     '1.1.2',
     '1.1.3',
     '1.1.4',
-    '1.1.5'
+    '1.1.5',
+    '1.2.0'
   ];
   var currentVersion = undefined;
 
@@ -117,6 +128,9 @@
     }
     if (message.content) {
       var msg = message.content;
+      if (msg.initialize) {
+        Message.Post(sender.tab.id, {'checkInitialized': true});
+      }
       if (msg.assault) {
         Time.SetAssaultTime(msg.assault.times);
       }
@@ -179,6 +193,9 @@
         connections[message.id].postMessage({initialize: response});
         return;
       }
+      if (message.initializeContentScript) {
+        chrome.tabs.sendMessage(message.id, { 'initialize': true });
+      }
       if (message.pageLoad) {
         pageLoaded = true;
         chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
@@ -207,6 +224,17 @@
       }
       if (message.openURL) {
         chrome.tabs.update(message.id, {'url': message.openURL});
+        return;
+      }
+      if (message.getURL) {
+        chrome.tabs.get(message.id, function (tab) {
+          if (tab.url) {
+            if (message.getURL === 'bookmark' && tab.url.indexOf('http://game.granbluefantasy.jp/') !== -1) {
+              var url = tab.url.replace('http://game.granbluefantasy.jp/', '');
+              Message.PostAll({ 'bookmarkURL': url });
+            }
+          }
+        });
         return;
       }
       if (message.getPlanner) {
@@ -255,7 +283,8 @@
             message.request.url.indexOf('/user/data_assets?') !== -1 ||
             //message.request.url.indexOf('/user/content/index?') !== -1 ||
             message.request.url.indexOf('/quest/content/') !== -1 ||
-            message.request.url.indexOf('/coopraid/content/') !== -1) {
+            message.request.url.indexOf('/coopraid/content/') !== -1 ||
+            message.request.url.indexOf('/user/content/') !== -1) {
           APBP.VerifyAPBP(message.request.response);
           Profile.SetLupiCrystal(message.request.response);
         }
@@ -281,8 +310,8 @@
           Dailies.DecPrimarchs(message.request.payload);
         }
         if (message.request.url.indexOf('/quest/raid_info?') !== -1) {
-          Quest.CheckMulti(message.request.payload);
-          //is_multi
+          //Quest.CheckMulti(message.request.payload);
+          //payload and response does not have a raid_id
         }
 
         //quest loot
@@ -293,6 +322,7 @@
         if (message.request.url.indexOf('/result/data/') !== -1) {
           Supplies.GetLoot(message.request.response);
           Profile.CompleteQuest(message.request.response);
+          Quest.CheckSpecialQuest(message.request.response);
         }
         // //initialize raid -> SELECTING RAID
         // if(message.request.url.indexOf('/quest/assist_list') !== -1) {
@@ -304,12 +334,12 @@
         // }
         //join raid
         if (message.request.url.indexOf('/quest/raid_deck_data_create') !== -1) {
-          APBP.StartRaid(message.request.response, message.request.payload);
-          Quest.CreateRaid(message.request.response, message.id);
+          APBP.StartRaid(message.request.payload);
+          Quest.CreateRaid(message.request.payload, message.id);
         }
-        // if(message.request.url.indexOf('/check_reward/') !== -1) {
-        //   Quest.CompleteQuest(message.request.url);
-        // }
+        if(message.request.url.indexOf('/check_reward/') !== -1) {
+          Quest.CompleteQuest(message.request.url);
+        }
         //raid loot
         // if(message.request.url.indexOf('/resultmulti/content/') !== -1) {
         //     Supplies.GetLoot(message.request.response.option.result_data);
@@ -381,13 +411,17 @@
         if (message.request.url.indexOf('/present/possessed') !== -1) {
           Profile.CheckWeaponSummon(message.request.response);
         }
-        if (message.request.url.indexOf('/present/receive?') !== -1) {
-          Supplies.GetGift(message.request.response);
-          Profile.GetGift(message.request.response);
+        if (message.request.url.indexOf('/present/receive') !== -1) {
+          Supplies.ReceiveGift(message.request.response);
+          Profile.ReceiveGift(message.request.response);
+        }
+        if (message.request.url.indexOf('/present/receive_all_confirm') !== -1) {
+          Supplies.GetAllGifts(message.request.response, message.id);
+          Profile.GetAllGifts(message.request.response, message.id);
         }
         if (message.request.url.indexOf('/present/receive_all?') !== -1 || message.request.url.indexOf('/present/term_receive_all?') !== -1) {
-          Supplies.GetAllGifts(message.request.response);
-          Profile.GetAllGifts(message.request.response);
+          Supplies.ReceiveAllGifts(message.request.response, message.id);
+          Profile.ReceiveAllGifts(message.request.response, message.id);
         }
         //treasure trade purchase
         if (message.request.url.indexOf('/shop_exchange/purchase/') !== -1) {
@@ -488,7 +522,7 @@
           Quest.UpdateTurnCounter(message.request.response, message.request.payload, message.id);
         }
         if (message.request.url.indexOf('/quest/init_list') !== -1) {
-          Quest.SetCurrentQuest(message.request.response);
+          //Quest.SetCurrentQuest(message.request.response);
         }
         if (message.request.url.indexOf('/quest/assist_list') !== -1) {
           Quest.CheckJoinedRaids(message.request.response);

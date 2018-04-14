@@ -10,6 +10,7 @@
     .right-padding {padding-right: 4px;}
     .neg-padding {margin-top: -8px; margin-bottom: -8px;}
     #is-magfest {margin-left: 3px; margin-bottom: 10px;}
+    .notes {margin-bottom: 6px;}
   </style>
 </head>
 
@@ -42,9 +43,15 @@
     <table id="notifications">
       <tr id="enable-row" class="wrapper">
         <td class="quest">
+          <input type="checkbox" id="attackRefresh">
+          <label>Attack Refresh</label>
+        </td>
+        <td class="quest">
           <input type="checkbox" id="ougiRefresh">
           <label>Ougi Refresh</label>
         </td>
+      </tr>
+      <tr id="enable-row" class="wrapper">
         <td class="quest">
           <input type="checkbox" id="skip">
           <label>Skip Quest End</label>
@@ -79,9 +86,29 @@
           <input type="checkbox" id="skipUpgradeResults">
           <label>Skip Upgrade/Reduce Results</label>
         </td>
-        <td class="quest">
-          <input type="checkbox" id="syncTurnCounters">
-          <label>Sync Turn Counters (requires page refresh to work)</label>
+      </tr>
+    </table>
+  </div>
+  <h3> Multi-Window Synchronization </h3>
+  <div class="notes">
+    <span>(Options in this section will need a page reload to take effect)</span>
+  </div>
+  <div class="main-wrapper">
+    <table id="sync-table">
+      <tr id="enable-row" class="wrapper">
+        <td class="sync">
+          <input type="checkbox" id="syncAll">
+          <label>Sync All</label>
+        </td>
+      </tr>
+      <tr id="enable-row" class="wrapper">
+        <td class="sync">
+          <input type="checkbox" id="syncTurns">
+          <label>Sync Turns</label>
+        </td>
+        <td class="sync">
+          <input type="checkbox" id="syncBossHP">
+          <label>Sync Boss HP</label>
         </td>
       </tr>
     </table>

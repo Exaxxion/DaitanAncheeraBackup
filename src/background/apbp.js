@@ -124,13 +124,14 @@
       };
     },
 
-    StartRaid: function(json, payload) {
-      if (json.result !== false) {
-        if (json.is_host === false) {
-          spendBP(parseInt(payload.select_bp));
-        }
-        currRaids[json.raid_id] = availableRaids[json.raid_id];
+    StartRaid: function(payload) {
+      var useBP = parseInt(payload.select_bp);
+      var id = '' + payload.raid_id;
+      if (isNaN(useBP)) {
+        useBP = 0;
       }
+      spendBP(useBP);
+      currRaids[id] = availableRaids[id];
       availableRaids = {};
       decAP = 0;
     },

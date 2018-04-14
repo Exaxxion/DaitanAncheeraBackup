@@ -229,7 +229,34 @@
                 <div id="profile-casinoChips" class="currency-amount">???</div>
               </div>
             </div>
-            <div id="bottom-profile"></div>
+            <div id="bottom-profile" style="display:none;">
+              <div id="item-tracker"></div>
+              <div id="bookmarks" class="panel panel-default collapse-default">
+                <a data-toggle="collapse" href="#collapse-bookmarks" class="link-heading panel-heading-new text-center">
+                  Bookmarks
+                </a>
+                <div id="collapse-bookmarks" class="panel-collapse collapse in">
+                  <div id="bookmark-toolbar">
+                    <div id="bookmark-add" class="icon open-url tooltip-down" data-toggle="tooltip" data-placement="top" title="" data-original-title="Add bookmark">
+                      <div>
+                        <span class="glyphicon glyphicon-plus"></span>
+                      </div>
+                    </div>
+                    <!--
+                    <div id="bookmark-delete" class="icon open-url tooltip-down" data-toggle="tooltip" data-placement="top" title="" data-original-title="Toggle bookmark deletion">
+                      <div>
+                        <span class="glyphicon glyphicon-trash"></span>
+                      </div>
+                    </div>
+                    -->
+                  </div>
+                  <ul class="panel-body-new vertical-table">
+                  </ul>
+                </div>
+              </div>
+              <div id="bookmarks" class="profile-currency open-url">
+              </div>
+            </div>
           </div>
           <div id="dailies" class="scroll-pane-2">
             <ul id="daily-categories" class="nav nav-pills nav-pills-daily sky">
@@ -580,10 +607,12 @@
       </div>
     </div>
 
+    <div id="alert" class="alert">
+
+    </div>
     <script type="text/javascript" src="../../../lib/jquery-3.0.0.min.js"></script>
     <script type="text/javascript" src="../../../lib/bootstrap-sass-3.3.7/assets/javascripts/bootstrap.min.js"></script>
     <script type="text/javascript" src="message.js"></script>
     <script type="text/javascript" src="network.js"></script>
-    <script type="text/javascript" src="default.js"></script>
   </body>
 </html>

@@ -96,6 +96,10 @@
     toggleTimes();
   });
 
+  $('#bookmark-add').click(function() {
+    Message.Post({ 'getURL': "bookmark" });
+  });
+
   var dropdownHash = {
     'Revenant': {
       'element' : ['Fire', 'Water', 'Earth', 'Wind', 'Light', 'Dark'],
@@ -323,6 +327,31 @@
         $('#contents').show();
       }
     }
+    if (message.checkInitialized) {
+      console.log("initializeContentScript");
+      Message.Post({ 'initializeContentScript': initialized });
+    }
+    if (message.bookmarkURL) {
+      //<li class="casino-div">
+      //<div class="open-url" data-url="#shop/exchange/points"></div>
+      $("#collapse-bookmarks > ul").append(
+        $('<li/>', {
+          'class': 'casino-div'
+        }).append(
+          $('<div/>', {
+            'class': 'open-url',
+            'data-url': message.bookmarkURL,
+            'text': 'bookmark'
+          }).click(function () {
+            if ($(this).data('url') !== undefined && $(this).data('url') !== '') {
+              Message.Post({ 'openURL': url + $(this).data('url') });
+            }
+          })
+        )
+      );
+      console.log(message.bookmarkURL);
+      return;
+    }
     if (message.setText) {
       setText(message.setText.id, message.setText.value);
       return;
@@ -365,6 +394,10 @@
     }
     if (message.addDistinction) {
       addDistinction(message.addDistinction.id, message.addDistinction.amount, message.addDistinction.max, message.addDistinction.isEnabled);
+      return;
+    }
+    if (message.setAlert) {
+      setAlert(message.setAlert.id, message.setAlert.time, message.setAlert.text);
       return;
     }
     if (message.collapsePanel) {
@@ -578,6 +611,14 @@
         'id':       parseInt(id)
       });
     }
+  };
+  var setAlert = function(id, time, text) {
+    if (jQueryCache[id] === undefined) {
+      jQueryCache[id] = $(id);
+    }
+    jQueryCache[id].text(text);
+    jQueryCache[id].animate({ top: '0' });
+    setTimeout(function(){ jQueryCache[id].animate({ top: '-100px' }); }, time);
   };
 
   var $plannerItem = $('.weapon-item').first().clone();
@@ -862,7 +903,7 @@
   };
 
   var setTheme = function(theme) {
-    Message.Post({'consoleLog': theme});
+    //Message.Post({'consoleLog': theme});
     var sheetURL = '../../stylesheets/';
     var $bars = $('.progress-bar');
     if (theme === 'Tiamat Night') {

@@ -3,16 +3,101 @@
     chrome.runtime.sendMessage({ refresh: true });
   });
 
-  var tempImageURLS = {};
-  var gameState = {
-    'turn': 1,
-    'raid_id': null,
-    'enemies': [null, null, null]
+  var tempImageURLS = {},
+    gameState = {
+      'turn': -1,
+      'raid_id': null,
+      'enemies': [null, null, null]
+    },
+    syncInit = false,
+    options = {
+      syncAll: false,
+      syncTurns: false,
+      syncBossHP: false
+    };
+
+
+  var injectSyncScript = function() {
+    if (syncInit) {
+      return;
+    }
+    syncInit = true;
+    var s = document.createElement('script');
+    s.type = 'text/javascript';
+    s.charset = 'utf-8';
+    s.src = chrome.extension.getURL('src/content/inject.js');
+    document.getElementsByTagName("head")[0].appendChild(s);
+  };
+
+  var updateSyncOption = function (optionKey, optionVal) {
+    var event = new CustomEvent('ancUpdateClient', {
+      detail: {
+        'updateSyncOptions': {
+          'key': optionKey,
+          'val': optionVal
+        }
+      }
+    });
+    window.dispatchEvent(event);
   };
 
   chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
     if (message.pageLoad) {
       pageLoad(message.pageLoad);
+    }
+
+    if (message.initialize) {
+      chrome.runtime.sendMessage({
+        getOption: 'syncAll'
+      }, function (response) {
+        if (response.value !== null) {
+          if (response.value) {
+            injectSyncScript();
+            options.syncAll = true;
+            updateSyncOption("syncAll", options.syncAll);
+          }
+        }
+      });
+
+      chrome.runtime.sendMessage({
+        getOption: 'syncTurns'
+      }, function (response) {
+        if (response.value !== null) {
+          if (response.value) {
+            injectSyncScript();
+            options.syncTurns = true;
+            updateSyncOption("syncTurns", options.syncTurns);
+          }
+        }
+      });
+
+      chrome.runtime.sendMessage({
+        getOption: 'syncBossHP'
+      }, function (response) {
+        if (response.value !== null) {
+          if (response.value) {
+            injectSyncScript();
+            options.syncBossHP = true;
+            updateSyncOption("syncBossHP", options.syncBossHP);
+          }
+        }
+      });
+      
+      window.addEventListener('ancClientMessage', function (evt) {
+        if (evt.detail.consoleLog !== undefined) {
+          console.log(evt.detail.consoleLog.msg);
+        }
+        if (evt.detail.requestSyncOptions !== undefined) {
+          var event = new CustomEvent('ancUpdateClient', {
+            detail: {
+              'updateAllSyncOptions': {
+                'options': options
+              }
+            }
+          });
+          window.dispatchEvent(event);
+        }
+      });
     }
 
     if (message.selectQuest) {
@@ -65,45 +150,27 @@
     }
 
     if (message.updateTurnCounter) {
-      if (message.updateTurnCounter.type === "start") {
-        gameState.raid_id = message.updateTurnCounter.raid_id;
-        updateGameState(message.updateTurnCounter);
-      } else if (message.updateTurnCounter.raid_id === gameState.raid_id) {
-        updateGameState(message.updateTurnCounter);
-      }
-    }
-  });
-
-  window.addEventListener('ancGameStateVarChange', function (evt) {
-    var id = '' + evt.detail.raid_id;
-    if (id !== gameState.raid_id) {
-      gameState.raid_id = id;
-      gameState.turn = evt.detail.turn;
-    } else if (evt.detail.turn < gameState.turn) {
-      updateClient(gs, null);
-    } else {
-      gameState.turn = evt.detail.turn;
-    }
-  });
-
-  window.addEventListener('ancConsoleLog', function (evt) {
-    console.log(evt.detail.msg);
-  });
-
-  $(document).ready(function () {
-    chrome.runtime.sendMessage({
-      getOption: 'syncTurnCounters'
-    }, function (response) {
-      if (response.value !== null) {
-        if (response.value) {
-          var s = document.createElement('script');
-          s.type = 'text/javascript';
-          s.charset = 'utf-8';
-          s.src = chrome.extension.getURL('src/content/inject.js');
-          document.getElementsByTagName("head")[0].appendChild(s);
+      if (options.syncAll || options.syncTurns || options.syncBossHP) {
+        if (message.updateTurnCounter.type === "start") {
+          gameState.raid_id = message.updateTurnCounter.raid_id;
+        }
+        if (message.updateTurnCounter.raid_id === gameState.raid_id) {
+          if ((options.syncAll || options.syncTurns) && message.updateTurnCounter.turn !== null) {
+            gameState.turn = message.updateTurnCounter.turn;
+          }
+          if (options.syncAll || options.syncBossHP) {
+            for (var i = 0; i < gameState.enemies.length; i++) {
+              if (message.updateTurnCounter.boss[i] !== undefined && message.updateTurnCounter.boss[i] !== null) {
+                gameState.enemies[i] = message.updateTurnCounter.boss[i];
+              } else {
+                gameState.enemies[i] = null;
+              }
+            }
+          }
+          updateClient(gameState, message.updateTurnCounter.ignoredEnemyHPValues);
         }
       }
-    });
+    }
   });
 
   var pageLoad = function(url) {
@@ -215,26 +282,20 @@
     }});
   };
 
-  var updateGameState = function(gs) {
-    gameState.turn = gs.turn;
-    for (var i = 0; i < gameState.enemies.length; i++) {
-      if (gs.boss[i] !== undefined && gs.boss[i] !== null) {
-        gameState.enemies[i] = gs.boss[i];
-      } else {
-        gameState.enemies[i] = null;
-      }
-    }
-    updateClient(gameState, gs.ignoredEnemyHPValues);
-  }
-
-  var updateClient = function(gs, ignoredEnemyHPValues) {
-    var event = new CustomEvent('ancUpdateGameState', {
+  var updateClient = function (gs, ignoredEnemyHPValues) {
+    var event = new CustomEvent('ancUpdateClient', {
       detail: {
-        'turn': gs.turn,
-        'enemies': gs.enemies,
-        'ignoredEnemyHPValues': ignoredEnemyHPValues
+        'gameState': {
+          'turn': gs.turn,
+          'enemies': gs.enemies,
+          'ignoredEnemyHPValues': ignoredEnemyHPValues
+        }
       }
     });
     window.dispatchEvent(event);
   };
+  
+  $(document).ready(function () {
+    messageDevTools({'initialize': true});
+  });
 })();

@@ -290,8 +290,8 @@
     return raidInfo[a].sequence2 - raidInfo[b].sequence2;
   };
 
-  var quest = null;
-  var raids = [];
+  var quests = {};
+  var raids  = [];
   var createQuest = function(id, url, devID) {
     var devIDs = [];
     if (devID !== undefined) {
@@ -630,6 +630,7 @@
           'value': !Options.Get(raidList[i])
         }});
       }
+
       return response;
     },
 
@@ -660,78 +661,82 @@
 
     CreateQuest: function(json, payload, devID) {
       // TODO: Why is this a global? Who's using it?
-      quest = createQuest(json.raid_id, '#raid/', devID);
       var id = '' + payload.quest_id;
-      if (id !== undefined) {
-        if (remainingQuests[id] !== undefined) {
-          setRemainingRaids(id, remainingQuests[id] - 1);
-          saveRemainingRaids();
-          if (raidInfo[id].animeIDs !== null && payload.use_item_id !== undefined) {
-            var index = raidInfo[id].animeIDs.indexOf(payload.use_item_id);
-            Supplies.Increment(raidInfo[id].animeIDs[index], '10', -raidInfo[id].animeCounts[index]);
-          }
+      quests[id] = createQuest(json.raid_id, '#raid/', devID);
+      var currQuest = quests[id];
+      if (remainingQuests[id] !== undefined) {
+        setRemainingRaids(id, remainingQuests[id] - 1);
+        saveRemainingRaids();
+        if (raidInfo[id].animeIDs !== null && payload.use_item_id !== undefined) {
+          var index = raidInfo[id].animeIDs.indexOf(payload.use_item_id);
+          Supplies.Increment(raidInfo[id].animeIDs[index], '10', -raidInfo[id].animeCounts[index]);
         }
-        for (var i = 0; i < events.length; i++) {
-          if (events[i].bossID !== null) {
-            for (var j = 0; j < events[i].bosses.length; j++) {
-              if (id === (events[i].bossID + events[i].bosses[j].id)) {
-                APBP.InitializeQuest({'action_point': events[i].bosses[j].ap});
-                if (events[i].currency1 !== null) {
-                  Supplies.Increment(events[i].currency1, '10', -events[i].bosses[j].currency1);
-                }
-                if (events[i].currency2 !== null) {
-                  Supplies.Increment(events[i].currency2, '10', -events[i].bosses[j].currency2);
-                }
+      }
+      for (var i = 0; i < events.length; i++) {
+        if (events[i].bossID !== null) {
+          for (var j = 0; j < events[i].bosses.length; j++) {
+            if (id === (events[i].bossID + events[i].bosses[j].id)) {
+              APBP.InitializeQuest({'action_point': events[i].bosses[j].ap});
+              if (events[i].currency1 !== null) {
+                Supplies.Increment(events[i].currency1, '10', -events[i].bosses[j].currency1);
+              }
+              if (events[i].currency2 !== null) {
+                Supplies.Increment(events[i].currency2, '10', -events[i].bosses[j].currency2);
               }
             }
           }
         }
       }
-      setQuestsJQuery();
+      if (payload.quest_type) {
+        if (payload.quest_type === 1 || payload.quest_type === 7) {
+          currQuest.url = '#raid_multi/';
+        }
+      }
+      setQuestsJQuery(id);
     },
 
     CheckMulti: function(json) {
       if (json.quest_type === 1 || json.quest_type === 7) {
-        quest.url = '#raid_multi/';
+        //quest.url = '#raid_multi/';
       }
     },
 
-    CreateRaid: function(json, devID) {
-      if (json.result !== false && json.is_host === false) {
-        var id = '' + json.raid_id;
-        for (var i = 0; i < raids.length; i++) {
-          if (raids.id === id) {
-            return;
-          }
+    CreateRaid: function(payload, devID) {
+      var id = '' + payload.raid_id;
+      for (var i = 0; i < raids.length; i++) {
+        if (raids.id === id) {
+          return;
         }
-        raids.push(createQuest(id, '#raid_multi/', devID));
-        setQuestsJQuery();
       }
+      raids.push(createQuest(id, '#raid_multi/', devID));
+      setQuestsJQuery(id);
     },
 
     CompleteQuest: function(url) {
       var id = url.substring(url.lastIndexOf('/') + 1, url.indexOf('?'));
-
-      if (quest !== null) {
-        //console.log(quest.id);
-      }
-      for (var i = 0; i < raids.length; i++) {
-        //console.log(raids[i].id);
-      }
-      if (quest !== null && quest.id === id) {
-        quest = null;
-      } else {
-        for (var i = 0; i < raids.length; i++) {
-          if (raids[i].id === id) {
-            raids.splice(i, 1);
-          }
+      //if (quests[id] !== undefined && quests[id] !== null) {
+      //  console.log(quest.id);
+      //}
+      //for (var i = 0; i < raids.length; i++) {
+      //  console.log(raids[i].id);
+      //}
+      for (var i in quests) {
+        if (!quests.hasOwnProperty(i)) continue;
+        if (quests[i] !== undefined && quests[i] !== null && quests[i].id === id) {
+          delete quests[i];
         }
       }
-      setQuestsJQuery();
+      //for (var i = 0; i < raids.length; i++) {
+      //  if (raids[i].id === id) {
+      //    raids.splice(i, 1);
+      //  }
+      //}
+      setQuestsJQuery(id);
     },
 
     StartBattle: function(json, devID) {
       var id = '' + json.raid_id;
+      var quest_id = '' + json.quest_id;
       var currQuest;
       if (json.twitter !== undefined && json.twitter.battle_id !== undefined) {
         Message.Post(devID, {'setClick': {
@@ -743,13 +748,13 @@
           'text': json.twitter.battle_id + ' (' +  json.twitter.monster + ') '
         }});
       }
-      if (quest !== null && quest.id === id) {
-        quest.image = enemyImageURL + json.boss.param[0].cjs.substring(json.boss.param[0].cjs.lastIndexOf('_') + 1) + '.png';
-        currQuest = quest;
-      } else if (quest === null && json.multi === 0) {
-        quest = createQuest(id, '#raid/', devID);
-        quest.image = enemyImageURL + json.boss.param[0].cjs.substring(json.boss.param[0].cjs.lastIndexOf('_') + 1) + '.png';
-        currQuest = quest;
+      if (quests[quest_id] !== undefined && quests[id] !== null) {
+        quests[quest_id].image = enemyImageURL + json.boss.param[0].cjs.substring(json.boss.param[0].cjs.lastIndexOf('_') + 1) + '.png';
+        currQuest = quests[quest_id];
+      } else if ((quests[quest_id] === undefined || quests[quest_id] === null) && json.multi === 0) {
+        quests[quest_id] = createQuest(id, '#raid/', devID);
+        quests[quest_id].image = enemyImageURL + json.boss.param[0].cjs.substring(json.boss.param[0].cjs.lastIndexOf('_') + 1) + '.png';
+        currQuest = quests[quest_id];
       } else {
         var exists = false;
         var image = enemyImageURL + json.boss.param[0].cjs.substring(json.boss.param[0].cjs.lastIndexOf('_') + 1) + '.png';
@@ -780,7 +785,7 @@
           }
         }
       }
-      if (Options.Get('syncTurnCounters')) {
+      if (Options.Get('syncAll')) {
         chrome.tabs.sendMessage(devID, {
           'updateTurnCounter': {
             'type': 'start',
@@ -791,7 +796,7 @@
           }
         });
       }
-      setQuestsJQuery();
+      setQuestsJQuery(id);
     },
 
     BattleAction: function(json, payload, devID) {
@@ -799,13 +804,19 @@
         return;
       }
       var id = '' + payload.raid_id;
-      var currQuest;
-      if (quest !== null && quest.id === id) {
-        currQuest = quest;
-      } else {
+      var currQuest = null;
+      for (var i in quests) {
+        if (!quests.hasOwnProperty(i)) continue;
+        if (quests[i].id === id) {
+          currQuest = quests[i];
+        }
+      }
+
+      if (currQuest === null) {
         for (var i = 0; i < raids.length; i++) {
           if (raids[i].id === id) {
             currQuest = raids[i];
+            console.log("raid");
             break;
           }
         }
@@ -830,27 +841,32 @@
             return;
           }
         }
-        if (Options.Get('ougiRefresh') && (json.scenario[i].cmd == 'special' || json.scenario[i].cmd == 'special_npc'))
-        {
+        if (Options.Get('attackRefresh') && (json.scenario[i].cmd == 'special' || json.scenario[i].cmd == 'special_npc' || json.scenario[i].cmd == 'attack' || json.scenario[i].cmd == 'super')) {
+          refresh = true;
+        } else if (Options.Get('ougiRefresh') && (json.scenario[i].cmd == 'special' || json.scenario[i].cmd == 'special_npc')) {
           refresh = true;
         }
       }
       if (refresh) {
-        Message.Post(devID, { 'openURL': currQuest.url + currQuest.id });
-        //chrome.tabs.executeScript(devID, { "code": "history.go(-1);setTimeout(function() {history.go(1);}, 50);" });
+        //Message.Post(devID, { 'openURL': currQuest.url + currQuest.id });
+        chrome.tabs.executeScript(devID, { "code": "history.go(-1);setTimeout(function() {history.go(1);}, 100);" });
       }
     },
 
     UpdateTurnCounter: function (json, payload, devID) {
-      if (!Options.Get('syncTurnCounters')) {
+      if (!Options.Get('syncAll') && !Options.Get('syncTurns') && !Options.Get('syncBossHP')) {
         return;
       }
       var id = '' + payload.raid_id;
       var currQuest = null;
-      if (quest !== null && quest.id === id) {
-        currQuest = quest;
+      for (var i in quests) {
+        if (!quests.hasOwnProperty(i)) continue;
+        if (quests[i].id === id) {
+          currQuest = quests[i];
+        }
+      }
 
-      } else {
+      if (currQuest === null) {
         for (var i = 0; i < raids.length; i++) {
           if (raids[i].id === id) {
             currQuest = raids[i];
@@ -861,123 +877,145 @@
       if (currQuest === null) {
         return;
       }
-      var ignoredEnemyHPValues = [[], [], []];
-      if (json.scenario) {
-        for (var i = 0; i < json.scenario.length; i++) {
-          switch (json.scenario[i].cmd) {
-            // only worry about these cases
-            case 'boss_gauge':
-              if (currQuest.enemies[json.scenario[i].pos] === null) {
-                currQuest.enemies[json.scenario[i].pos] = createEnemy(json.scenario[i].hp, json.scenario[i].hpmax);
-              } else {
-                currQuest.enemies[json.scenario[i].pos].currHP = json.scenario[i].hp;
-                currQuest.enemies[json.scenario[i].pos].maxHP = json.scenario[i].hpmax;
-              }
-            case 'attack':
-              if (json.scenario[i].from && json.scenario[i].from !== 'player') {
-                break;
-              }
-              if (json.scenario[i].to && json.scenario[i].to !== 'boss') {
-                break;
-              }
-              if (json.scenario[i].damage !== undefined) {
-                for (var j = 0; j < json.scenario[i].damage.length; j++) {
-                  for (var k = 0; k < json.scenario[i].damage[j].length; k++) {
-                    if (isNaN(json.scenario[i].damage[j][k].hp) || isNaN(json.scenario[i].damage[j][k].pos)) {
-                      continue;
-                    }
-                    ignoredEnemyHPValues[json.scenario[i].damage[j][k].pos].push(json.scenario[i].damage[j][k].hp);
-                  }
+      console.log(currQuest);
+      var ignoredEnemyHPValues = null;
+      var enemies = null;
+      if (Options.Get('syncAll') || Options.Get('syncBossHP')) {
+        ignoredEnemyHPValues = [[], [], []];
+        enemies = currQuest.enemies;
+        if (json.scenario) {
+          for (var i = 0; i < json.scenario.length; i++) {
+            switch (json.scenario[i].cmd) {
+              // only worry about these cases
+              case 'boss_gauge':
+                if (currQuest.enemies[json.scenario[i].pos] === null) {
+                  currQuest.enemies[json.scenario[i].pos] = createEnemy(json.scenario[i].hp, json.scenario[i].hpmax);
+                } else {
+                  currQuest.enemies[json.scenario[i].pos].currHP = json.scenario[i].hp;
+                  currQuest.enemies[json.scenario[i].pos].maxHP = json.scenario[i].hpmax;
                 }
-              }
-              break;
-            // ougi and summon handler
-            case 'summon':
-            case 'special':
-            case 'special_npc':
-              if (json.scenario[i].from && json.scenario[i].from !== 'player') {
-                break;
-              }
-              if (json.scenario[i].to && json.scenario[i].to !== 'boss') {
-                break;
-              }
-              if (json.scenario[i].list !== undefined) {
-                if (json.scenario[i].list[0].damage.length === 0) {
+              case 'attack':
+                if (json.scenario[i].from && json.scenario[i].from !== 'player') {
                   break;
                 }
-                for (var j = 0; j < json.scenario[i].list.length; j++) {
-                  for (var k = 0; k < json.scenario[i].list[j].damage.length; k++) {
-                    ignoredEnemyHPValues[json.scenario[i].list[j].damage[k].pos].push(json.scenario[i].list[j].damage[k].hp);
+                if (json.scenario[i].to && json.scenario[i].to !== 'boss') {
+                  break;
+                }
+                if (json.scenario[i].damage !== undefined) {
+                  for (var j = 0; j < json.scenario[i].damage.length; j++) {
+                    for (var k = 0; k < json.scenario[i].damage[j].length; k++) {
+                      if (isNaN(json.scenario[i].damage[j][k].hp) || isNaN(json.scenario[i].damage[j][k].pos)) {
+                        continue;
+                      }
+                      ignoredEnemyHPValues[json.scenario[i].damage[j][k].pos].push(json.scenario[i].damage[j][k].hp);
+                    }
                   }
                 }
-              }
-              break;
-            // ability and other damage handler
-            case 'damage':
-              if (json.scenario[i].from && json.scenario[i].from !== 'player') {
                 break;
-              }
-              if (json.scenario[i].to && json.scenario[i].to !== 'boss') {
-                break;
-              }
-              if (json.scenario[i].list !== undefined) {
-                for (var j = 0; j < json.scenario[i].list.length; j++) {
-                  ignoredEnemyHPValues[json.scenario[i].list[j].pos].push(json.scenario[i].list[j].hp);
+              // ougi and summon handler
+              case 'summon':
+              case 'special':
+              case 'special_npc':
+                if (json.scenario[i].from && json.scenario[i].from !== 'player') {
+                  break;
                 }
-              }
-              break;
-            default:
-              break;
-          }
-        }
-      }
-      for (var i = 0; i < ignoredEnemyHPValues.length; i++) {
-        if (currQuest.enemies[i] !== null) {
-          for (var j = 0; j < ignoredEnemyHPValues[i].length; j++) {
-            if (ignoredEnemyHPValues[i][j] === currQuest.enemies[i].currHP) {
-              ignoredEnemyHPValues[i].splice(j, 1);
-              break;
+                if (json.scenario[i].to && json.scenario[i].to !== 'boss') {
+                  break;
+                }
+                if (json.scenario[i].list !== undefined) {
+                  if (json.scenario[i].list[0].damage.length === 0) {
+                    break;
+                  }
+                  for (var j = 0; j < json.scenario[i].list.length; j++) {
+                    for (var k = 0; k < json.scenario[i].list[j].damage.length; k++) {
+                      ignoredEnemyHPValues[json.scenario[i].list[j].damage[k].pos].push(json.scenario[i].list[j].damage[k].hp);
+                    }
+                  }
+                }
+                break;
+              // ability and other damage handler
+              case 'damage':
+                if (json.scenario[i].from && json.scenario[i].from !== 'player') {
+                  break;
+                }
+                if (json.scenario[i].to && json.scenario[i].to !== 'boss') {
+                  break;
+                }
+                if (json.scenario[i].list !== undefined) {
+                  for (var j = 0; j < json.scenario[i].list.length; j++) {
+                    ignoredEnemyHPValues[json.scenario[i].list[j].pos].push(json.scenario[i].list[j].hp);
+                  }
+                }
+                break;
+              default:
+                break;
             }
           }
-          ignoredEnemyHPValues[i].push(currQuest.enemies[i].currHP);
+        }
+        for (var i = 0; i < ignoredEnemyHPValues.length; i++) {
+          if (currQuest.enemies[i] !== null) {
+            for (var j = 0; j < ignoredEnemyHPValues[i].length; j++) {
+              if (ignoredEnemyHPValues[i][j] === currQuest.enemies[i].currHP) {
+                ignoredEnemyHPValues[i].splice(j, 1);
+                break;
+              }
+            }
+            ignoredEnemyHPValues[i].push(currQuest.enemies[i].currHP);
+          }
         }
       }
+      var turn = null;
+      if (Options.Get('syncAll') || Options.Get('syncTurns')) {
+        if (json.status !== undefined && json.status.turn !== undefined) {
+          turn = json.status.turn;
+        }
+      }
+
       for (var i = 0; i < currQuest.devIDs.length; i++) {
         if (devID === currQuest.devIDs[i]) {
           chrome.tabs.sendMessage(currQuest.devIDs[i], {
             'updateTurnCounter': {
               'type': 'battle',
-              'turn': json.status.turn,
+              'turn': turn,
               'raid_id': currQuest.id,
-              'boss': currQuest.enemies,
+              'boss': enemies,
               'ignoredEnemyHPValues': ignoredEnemyHPValues
             }
           });
         } else {
-          chrome.tabs.sendMessage(currQuest.devIDs[i], {'updateTurnCounter': {
+          chrome.tabs.sendMessage(currQuest.devIDs[i], {
+            'updateTurnCounter': {
             'type': 'battle',
-            'turn': json.status.turn,
+            'turn': turn,
             'raid_id': currQuest.id,
-            'boss': currQuest.enemies,
+            'boss': enemies,
             'ignoredEnemyHPValues': null
           }});
         }
       }
     },
 
-    SetCurrentQuest: function(json) {
+    SetCurrentQuest: function (json) {
+      // currently unused
       if (json.progress_quest_info !== undefined) {
-        var id = json.progress_quest_info[0].raid_id;
-        if (quest === null) {
-          quest = createQuest(id, '#raid/');
+        var id = '' + json.progress_quest_info[0].raid_id;
+        var currQuest = null;
+        for (x in quests) {
+          if (!quests.hasOwnProperty(x)) continue;
+          if (quests[x].id === id) {
+            currQuest = quests[x];
+          }
+        }
+        if (currQuest === null) {
+          currQuest = createQuest(id, '#raid/');
         } else {
-          quest.id = id;
-          quest.url = '#raid/';
+          currQuest.id = id;
+          currQuest.url = '#raid/';
         }
       } else {
-        quest = null;
+        delete quests[id];
       }
-      setQuestsJQuery();
+      setQuestsJQuery(id);
     },
 
     UseSummon: function(json) {
@@ -988,8 +1026,8 @@
 
     AbandonQuest: function(payload) {
       var id = '' + payload.raid_id;
-      if (quest !== null && quest.id === id) {
-        quest = null;
+      if (quests[id] !== null && quests[id].id === id) {
+        delete quests[id];
       } else {
         for (var i = 0; i < raids.length; i++) {
           if (raids[i].id === id) {
@@ -998,7 +1036,7 @@
           }
         }
       }
-      setQuestsJQuery();
+      setQuestsJQuery(id);
     },
 
     CheckJoinedRaids: function(json) {
@@ -1018,7 +1056,8 @@
     UpdateInProgress: function(json, devID) {
       var inProgress = json.option.quest.init_list.progress_quest_info;
       if (inProgress !== undefined && inProgress.length > 0) {
-        quest = createQuest(inProgress[0].raid_id, '#raid/', devID);
+        var id = '' + inProgress[0].raid_id;
+        quests[id] = createQuest(id, '#raid/', devID);
       }
     },
 
@@ -1034,15 +1073,27 @@
           }
         }
       }
+    },
+
+    CheckSpecialQuest: function(json) {
+      if (json.appearance !== undefined && json.appearance !== null) {
+        if (json.appearance.is_quest !== undefined && json.appearance.is_quest !== null) {
+          Message.PostAll({'setAlert': {
+            'id': '#alert',
+            'time': 10000,
+            'text': json.appearance.quest_name + ' has appeared!'
+          }})
+        }
+      }
     }
   };
 
-  var setQuestsJQuery = function() {
+  var setQuestsJQuery = function(id) {
     var image;
     var url;
-    if (quest !== null) {
-      image = quest.image;
-      url   = quest.url + quest.id;
+    if (quests[id] !== undefined && quests[id] !== null) {
+      image = quests[id].image;
+      url   = quests[id].url + quests[id].id;
     } else {
       image = blankIcon;
       url   = '';

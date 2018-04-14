@@ -1,11 +1,14 @@
 (function() {
   var options = {
     ougiRefresh:               false,
+    attackRefresh:             false,
     skip:                      false,
     skipNext:                  false,
     skipCoopResults:           false,
     skipUpgradeResults:        false,
-    syncTurnCounters:          false,
+    syncAll:                   false,
+    syncTurns:                 false,
+    syncBossHP:                false,
     enableNotifications:       true,
     muteNotifications:         false,
     apNotifications:           true,

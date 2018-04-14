@@ -1,5 +1,5 @@
 (function() {
-  chrome.devtools.network.onRequestFinished.addListener(function(request) {
+  chrome.devtools.network.onRequestFinished.addListener(function (request) {
     if (request.request.url.indexOf('.css') !== -1 &&
         request.request.url.indexOf('/css/common/index.css') === -1) {
       Message.Post({pageLoad : true});

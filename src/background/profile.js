@@ -37,6 +37,8 @@
   var nextUpgrade     = null;
   var reduceReturnURL = {};
 
+  var pendingTuples   = {};
+
   window.Profile = {
     Initialize: function(callback) {
       for (var i = 0; i < restoreIDs.length; i++) {
@@ -96,7 +98,7 @@
       if (raidTuples !== undefined) {
         tuples = raidTuples;
       }
-      tuples['lupi'] = profile['lupi'] + json.rewards.lupi.sum;
+      tuples['lupi'] = profile['lupi'] + json.rewards.lupi;
       if (json.values.pc_levelup.is_levelup) {
         var remain = 0;
         for (var i = 1; i <= json.values.pc.param.new.level; i++) {
@@ -255,14 +257,14 @@
 
     SetLupiCrystal: function(json) {
       var tuples = {};
-      if (json.mydata !== undefined) {
+      if (json.mydata !== undefined && json.mydata.possessed) {
         if (json.mydata.notice !== undefined && json.mydata.trajectory_drop !== undefined) {
           tuples['drops'] = profile['drops'] + parseInt(json.mydata.notice.trajectory_drop);
         }
         tuples['lupi']    = parseInt(json.mydata.possessed.lupi);
         tuples['crystal'] = parseInt(json.mydata.possessed.stone);
         setProfile(tuples);
-      } else if (json.option !== undefined && json.option.mydata_assets !== undefined) {
+      } else if (json.option !== undefined && json.option.mydata_assets !== undefined && json.option.mydata_assets.mydata.possessed) {
         tuples['lupi']    = parseInt(json.option.mydata_assets.mydata.possessed.lupi);
         tuples['crystal'] = parseInt(json.option.mydata_assets.mydata.possessed.stone);
         setProfile(tuples);
@@ -393,29 +395,33 @@
       setProfile(tuples);
     },
 
-    GetGift: function(json) {
+    ReceiveGift: function(json) {
       var category = getCategory(json.item_kind_id);
       if (category !== undefined) {
         setProfile({[category]: profile[category] + parseInt(json.number)});
       }
     },
 
-    GetAllGifts: function(json) {
+    GetAllGifts: function(json, devID) {
       var item;
       var category;
-      var tuples = {};
+      pendingTuples[devID] = {};
       for (var i = 0; i < json.presents.length; i++) {
         item = json.presents[i];
         category = getCategory(item.item_kind_id);
         if (category !== undefined) {
-          if (tuples[category] === undefined) {
-            tuples[category] = profile[category] + parseInt(item.number);
+          if (pendingTuples[devID][category] === undefined) {
+            pendingTuples[devID][category] = profile[category] + parseInt(item.number);
           } else {
-            tuples[category] += parseInt(item.number);
+            pendingTuples[devID][category] += parseInt(item.number);
           }
         }
       }
-      setProfile(tuples);
+    },
+
+    ReceiveAllGifts: function (json, devID) {
+      setProfile(pendingTuples[devID]);
+      pendingTuples[devID] = {};
     },
 
     SetUncapItem: function(json) {
@@ -501,9 +507,14 @@
       }
     },
 
-    SetZenith: function(json) {
-      var zenith = json.job.zenith.lp_amount;
-      if (zenith !== undefined) {
+    SetZenith: function (json) {
+      var zenith = null;
+      if (json.job !== undefined &&
+          json.job.zenith !== undefined &&
+          json.job.zenith.lp_amount !== undefined) {
+        zenith = json.job.zenith.lp_amount;
+      }
+      if (zenith !== null) {
         var amt = parseInt(zenith);
         setProfile({ 'zenith': amt });
       }

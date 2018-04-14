@@ -101,11 +101,14 @@ var distinctionInfo = {
 
 var options = [
   'ougiRefresh',
+  'attackRefresh',
   'skip',
   'skipNext',
   'skipCoopResults',
   'skipUpgradeResults',
-  'syncTurnCounters',
+  'syncAll',
+  'syncTurns',
+  'syncBossHP',
   'enableNotifications',
   'muteNotifications',
   'apNotifications',
