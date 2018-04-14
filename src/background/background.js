@@ -3,7 +3,7 @@
   var currURL    = '';
   var pageLoaded = true;
 
-  var CURRENT_VERSION = '1.2.0';
+  var CURRENT_VERSION = '1.2.1';
   var BASE_VERSION    = '1.0.1';
   var patchNotes = {
     '1.0.1': {
@@ -48,17 +48,28 @@
     '1.1.5': {
       'index': 6,
       'notes': ['-Improved turn sync between windows',
-        '-Also syncs enemy/boss HP between windows as requested']
+        '-Also syncs enemy/boss HP between',
+        'windows as requested']
     },
     '1.2.0': {
       'index': 7,
       'notes': ['-Bunch of bug fixes',
         '-Separated multiwindow sync options',
         '-Fixed some multiwindow sync issues on refresh',
-        '-Sped up refresh by using back/forward instead of refresh',
+        '-Sped up refresh by using back/forward',
+        'instead of refresh',
         '-Added a refresh option for all attacks',
-        '-Fixed autoend quest to work with multiple self-hosted quests',
+        '-Fixed autoend quest to work with multiple',
+        'self-hosted quests',
         '-Added a nightmare/special quest notification']
+    },
+    '1.2.1': {
+      'index': 8,
+      'notes': ['-Minor bug fixes',
+        '-Fixed character uncap not skipping correctly',
+        '-Fixed ougi toggle button not visually updating',
+        'sometimes after refresh',
+        '-Faster refresh is now its on toggleable option']
     }
   };
   var patchNoteList = [
@@ -69,7 +80,8 @@
     '1.1.3',
     '1.1.4',
     '1.1.5',
-    '1.2.0'
+    '1.2.0',
+    '1.2.1'
   ];
   var currentVersion = undefined;
 
@@ -520,6 +532,9 @@
         if (message.request.url.indexOf('/normal_attack_result.json?_=') !== -1 || message.request.url.indexOf('/ability_result.json?_=') !== -1 || message.request.url.indexOf('/summon_result.json?_=') !== -1) {
           Quest.BattleAction(message.request.response, message.request.payload, message.id);
           Quest.UpdateTurnCounter(message.request.response, message.request.payload, message.id);
+        }
+        if (message.request.url.indexOf('/rest/raid/setting?') !== -1) {
+          Quest.CheckOugiToggle(message.request.payload, message.id);
         }
         if (message.request.url.indexOf('/quest/init_list') !== -1) {
           //Quest.SetCurrentQuest(message.request.response);

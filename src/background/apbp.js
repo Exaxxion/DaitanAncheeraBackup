@@ -14,7 +14,10 @@
   var responseAP     = [];
 
   window.APBP = {
-    VerifyAPBP: function(json) {
+    VerifyAPBP: function (json) {
+      if (json === null) {
+        return;
+      }
       var status;
       if (json.status !== undefined) {
         status = json.status;
@@ -96,10 +99,10 @@
       } else if (id == 715511) {
         decAP = 10;
       }
-      if (json.result !== undefined && json.result === 'ok') {
-        spendAP(decAP);
-        decAP = 0;
-      }
+      //if (json.result !== undefined && json.result === 'ok') {
+      //}
+      spendAP(decAP);
+      decAP = 0;
       //715561 = dragon
       //715551
       //715541

@@ -85,7 +85,6 @@
       
       window.addEventListener('ancClientMessage', function (evt) {
         if (evt.detail.consoleLog !== undefined) {
-          console.log(evt.detail.consoleLog.msg);
         }
         if (evt.detail.requestSyncOptions !== undefined) {
           var event = new CustomEvent('ancUpdateClient', {
@@ -169,6 +168,12 @@
           }
           updateClient(gameState, message.updateTurnCounter.ignoredEnemyHPValues);
         }
+      }
+    }
+
+    if (message.checkOugiToggle) {
+      if (!$('.btn-lock').hasClass('lock' + message.checkOugiToggle)) {
+        $('.btn-lock').attr('class', $('.btn-lock').attr('class').replace('lock' + (message.checkOugiToggle ^ 1), 'lock' + message.checkOugiToggle));
       }
     }
   });

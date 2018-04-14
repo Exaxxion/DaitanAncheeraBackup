@@ -2,6 +2,7 @@
   var options = {
     ougiRefresh:               false,
     attackRefresh:             false,
+    fasterRefresh:             true,
     skip:                      false,
     skipNext:                  false,
     skipCoopResults:           false,

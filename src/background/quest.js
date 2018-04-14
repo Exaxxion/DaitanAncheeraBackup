@@ -662,7 +662,12 @@
     CreateQuest: function(json, payload, devID) {
       // TODO: Why is this a global? Who's using it?
       var id = '' + payload.quest_id;
-      quests[id] = createQuest(json.raid_id, '#raid/', devID);
+      // response no longer being sent from this request?
+      if (json !== undefined && json !== null) {
+        quests[id] = createQuest(json.raid_id, '#raid/', devID);
+      } else {
+        quests[id] = createQuest(null, '#raid/', devID);
+      }
       var currQuest = quests[id];
       if (remainingQuests[id] !== undefined) {
         setRemainingRaids(id, remainingQuests[id] - 1);
@@ -734,7 +739,10 @@
       setQuestsJQuery(id);
     },
 
-    StartBattle: function(json, devID) {
+    StartBattle: function (json, devID) {
+      if (json === undefined || json === null) {
+        return;
+      }
       var id = '' + json.raid_id;
       var quest_id = '' + json.quest_id;
       var currQuest;
@@ -750,6 +758,7 @@
       }
       if (quests[quest_id] !== undefined && quests[id] !== null) {
         quests[quest_id].image = enemyImageURL + json.boss.param[0].cjs.substring(json.boss.param[0].cjs.lastIndexOf('_') + 1) + '.png';
+        quests[quest_id].id = id;
         currQuest = quests[quest_id];
       } else if ((quests[quest_id] === undefined || quests[quest_id] === null) && json.multi === 0) {
         quests[quest_id] = createQuest(id, '#raid/', devID);
@@ -848,8 +857,11 @@
         }
       }
       if (refresh) {
-        //Message.Post(devID, { 'openURL': currQuest.url + currQuest.id });
-        chrome.tabs.executeScript(devID, { "code": "history.go(-1);setTimeout(function() {history.go(1);}, 100);" });
+        if (Options.Get('fasterRefresh')) {
+          chrome.tabs.executeScript(devID, { "code": "history.go(-1);setTimeout(function() {history.go(1);}, 100);" });
+        } else {
+          Message.Post(devID, { 'openURL': currQuest.url + currQuest.id });
+        }
       }
     },
 
@@ -877,7 +889,6 @@
       if (currQuest === null) {
         return;
       }
-      console.log(currQuest);
       var ignoredEnemyHPValues = null;
       var enemies = null;
       if (Options.Get('syncAll') || Options.Get('syncBossHP')) {
@@ -1085,6 +1096,12 @@
           }})
         }
       }
+    },
+
+    CheckOugiToggle: function (payload, devID) {
+      if (payload.set ==='special_skill') {
+        chrome.tabs.sendMessage(devID, { 'checkOugiToggle': payload.value });
+      };
     }
   };
 

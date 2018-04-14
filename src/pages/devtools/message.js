@@ -328,7 +328,6 @@
       }
     }
     if (message.checkInitialized) {
-      console.log("initializeContentScript");
       Message.Post({ 'initializeContentScript': initialized });
     }
     if (message.bookmarkURL) {

@@ -102,6 +102,7 @@ var distinctionInfo = {
 var options = [
   'ougiRefresh',
   'attackRefresh',
+  'fasterRefresh',
   'skip',
   'skipNext',
   'skipCoopResults',

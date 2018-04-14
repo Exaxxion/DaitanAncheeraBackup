@@ -443,7 +443,7 @@
         } else if (url.indexOf('evolution_summon/item_evolution?') !== -1) {
           redirectURL = '#evolution/summon/material';
         }
-        if (redirectURL !== null) {https://i.imgur.com/Ih4HjKj.png
+        if (redirectURL !== null) {
           Message.Post(devID, { 'openURL': redirectURL });
         }
       }
@@ -491,8 +491,9 @@
       }
 
       if (Options.Get('skipUpgradeResults')) {
-        Message.Post(devID, { 'openURL': '#evolution/npc/material' });
-        Message.Post(devID, { 'openURL': '#evolution/npc/confirm' });
+        //Message.Post(devID, { 'openURL': '#evolution/npc/base' });
+        //Message.Post(devID, { 'openURL': '#evolution/npc/confirm' });
+        chrome.tabs.executeScript(devID, { "code": "history.go(-1);setTimeout(function() {history.go(1);}, 100);" });
       }
     },
 

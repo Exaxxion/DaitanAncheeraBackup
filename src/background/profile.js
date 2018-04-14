@@ -264,7 +264,7 @@
         tuples['lupi']    = parseInt(json.mydata.possessed.lupi);
         tuples['crystal'] = parseInt(json.mydata.possessed.stone);
         setProfile(tuples);
-      } else if (json.option !== undefined && json.option.mydata_assets !== undefined && json.option.mydata_assets.mydata.possessed) {
+      } else if (json.option !== undefined && json.option.mydata_assets !== undefined && json.option.mydata_assets.mydata !== undefined && json.option.mydata_assets.mydata.possessed) {
         tuples['lupi']    = parseInt(json.option.mydata_assets.mydata.possessed.lupi);
         tuples['crystal'] = parseInt(json.option.mydata_assets.mydata.possessed.stone);
         setProfile(tuples);
@@ -441,6 +441,7 @@
         setProfile({[nextUncap]: profile[nextUncap] - 1});
       }
       if (Options.Get('skipUpgradeResults')) {
+        //chrome.tabs.executeScript(devID, { "code": "history.go(-1);setTimeout(function() {history.go(1);}, 100);" });
         var redirectURL = null;
         if (url.indexOf('evolution_weapon/evolution?') !== -1) {
           redirectURL = '#evolution/weapon/material';
@@ -481,6 +482,7 @@
         setProfile({[nextUpgrade.category]: profile[nextUpgrade.category] -nextUpgrade.amount});
       }
       if (Options.Get('skipUpgradeResults')) {
+        //chrome.tabs.executeScript(devID, { "code": "history.go(-1);setTimeout(function() {history.go(1);}, 100);" });
         var redirectURL = null;
         if (url.indexOf('enhancement_weapon/enhancement') !== -1) {
           redirectURL = '#enhancement/weapon/list_all';

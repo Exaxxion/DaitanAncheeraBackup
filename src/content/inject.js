@@ -43,7 +43,7 @@
   window.addEventListener('ancUpdateClient', function (evt) {
     if (typeof evt.detail.gameState !== "undefined") {
       if (typeof stage !== "undefined" && stage !== null) {
-        if (typeof stage.gGameStatus !== "undefined" && stage !== null) {
+        if (typeof stage.gGameStatus !== "undefined" && stage.gGameStatus !== null) {
           var gs = evt.detail.gameState;
           if ((options.syncAll || options.syncTurns) && gs.turn !== null && gs.turn > 0) {
             gameVars.gs.turn = gs.turn;
@@ -77,7 +77,6 @@
     if (typeof evt.detail.updateSyncOptions !== "undefined") {
       options[evt.detail.updateSyncOptions.key] = evt.detail.updateSyncOptions.val;
     }
-    consoleLog(options);
   });
 
   function updateTurns(turn) {
