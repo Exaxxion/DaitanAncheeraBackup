@@ -255,7 +255,10 @@
       setProfile(tuples);
     },
 
-    SetLupiCrystal: function(json) {
+    SetLupiCrystal: function (json) {
+      if (json === undefined || json === null) {
+        return;
+      }
       var tuples = {};
       if (json.mydata !== undefined && json.mydata.possessed) {
         if (json.mydata.notice !== undefined && json.mydata.trajectory_drop !== undefined) {

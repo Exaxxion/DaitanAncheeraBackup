@@ -77,6 +77,12 @@
     if (typeof evt.detail.updateSyncOptions !== "undefined") {
       options[evt.detail.updateSyncOptions.key] = evt.detail.updateSyncOptions.val;
     }
+    if (typeof evt.detail.updateOugiToggleBtn !== "undefined") {
+      if (stage.gGameStatus.lock !== evt.detail.updateOugiToggleBtn) {
+        //$('.btn-lock').attr('class', $('.btn-lock').attr('class').replace('lock' + stage.gGameStatus.lock, 'lock' + evt.detail.updateOugiToggleBtn));
+        stage.gGameStatus.lock = evt.detail.updateOugiToggleBtn;
+      }
+    }
   });
 
   function updateTurns(turn) {

@@ -171,9 +171,15 @@
       }
     }
 
-    if (message.checkOugiToggle) {
+    if (message.checkOugiToggle !== undefined) {
       if (!$('.btn-lock').hasClass('lock' + message.checkOugiToggle)) {
-        $('.btn-lock').attr('class', $('.btn-lock').attr('class').replace('lock' + (message.checkOugiToggle ^ 1), 'lock' + message.checkOugiToggle));
+        var event = new CustomEvent('ancUpdateClient', {
+          detail: {
+            'updateOugiToggleBtn': message.checkOugiToggle
+          }
+        });
+        window.dispatchEvent(event);
+        ougiBugged = true;
       }
     }
   });
