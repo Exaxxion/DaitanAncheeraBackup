@@ -10,6 +10,13 @@
       chrome.storage.local.set({[key]: value});
     },
 
+    RemoveItem: function (category, id) {
+      chrome.storage.local.get(category, function (result) {
+        delete result[category].supplies[id];
+        chrome.storage.local.set(result);
+      });
+    },
+
     GetSync: function(key, sendResponse) {
       chrome.storage.sync.get(key, function(response) {
         if (chrome.runtime.lastError) {

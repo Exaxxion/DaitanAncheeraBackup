@@ -22,6 +22,8 @@ var raidInfo = {
   '301381' : createRaid('Garuda (EX)', '6', false),
   '300441' : createRaid('Tiamat (HL)', '7', true),
   '300451' : createRaid('Nezha (HL)', '8', true),
+  '303051' : createRaid('Morrigna (HL)', '9', true),
+  '303181' : createRaid('Grimnir (HL)', '10', true),
 
   '300061' : createRaid('Flame (N)', '0', false),
   '300071' : createRaid('Flame (H)', '1', false),
@@ -32,6 +34,8 @@ var raidInfo = {
   '301071' : createRaid('Athena (EX)', '6', false),
   '300491' : createRaid('Colossus (HL)', '7', true),
   '300501' : createRaid('Elements (HL)', '8', true),
+  '302751' : createRaid('Prometheus (HL)', '9', true),
+  '303151' : createRaid('Shiva (HL)', '10', true),
 
   '300111' : createRaid('Guard (N)', '0', false),
   '300121' : createRaid('Guard (H)', '1', false),
@@ -42,6 +46,8 @@ var raidInfo = {
   '300481' : createRaid('Grani (EX)', '6', false),
   '300511' : createRaid('Leviathan (HL)', '7', true),
   '300521' : createRaid('Macula (HL)', '8', true),
+  '303041' : createRaid('Ca Ong (HL)', '9', true),
+  '303161' : createRaid('Europa (HL)', '10', true),
 
   '300170' : createRaid(null, '0', null, false),
   '300171' : createRaid('Dragon (H)', '1', false),
@@ -52,6 +58,8 @@ var raidInfo = {
   '301371' : createRaid('Baal (EX)', '6', false),
   '300531' : createRaid('Yggdrasil (HL)', '7', true),
   '300541' : createRaid('Medusa (HL)', '8', true),
+  '302711' : createRaid('Gilgamesh (HL)', '9', true),
+  '303171' : createRaid('Alexiel (HL)', '10', true),
 
   '300200' : createRaid(null, '0', null, false),
   '300201' : createRaid('Wisp (H)', '1', false),
@@ -62,6 +70,8 @@ var raidInfo = {
   '300461' : createRaid('Odin (EX)', '6', false),
   '300561' : createRaid('Lumi (HL)', '7', true),
   '300571' : createRaid('Apollo (HL)', '8', true),
+  '303061' : createRaid('Hector (HL)', '9', true),
+  '303191' : createRaid('Metatron (HL)', '10', true),
 
   '300230' : createRaid(null, '0', null, false),
   '300231' : createRaid('Eye (H)', '1', false),
@@ -72,11 +82,15 @@ var raidInfo = {
   '300551' : createRaid('Lich (EX)', '6', false),
   '300581' : createRaid('Celest (HL)', '7', true),
   '300591' : createRaid('Olivia (HL)', '8', true),
+  '303071' : createRaid('Anubis (HL)', '9', true),
+  '303221' : createRaid('Avatar (HL)', '10', true),
 
-  '300291' : createRaid('Baha (EX)', '9', false),
-  '301051' : createRaid('Grand (EX)', '9', false),
-  '300471' : createRaid('Rose (HL)', '9', true),
-  '301061' : createRaid('Baha (HL)', '9', true)
+  '300291' : createRaid('Baha (EX)', '11', false),
+  '301051' : createRaid('Grand (EX)', '11', false),
+  '303131' : createRaid('Ulti Baha (EX)', '11', false),
+  '300471' : createRaid('Rose (HL)', '11', true),
+  '301061' : createRaid('Baha (HL)', '11', true),
+  '303141' : createRaid('Ulti Baha (HL)', '11', true)
 };
 
 var distinctionInfo = {
@@ -136,6 +150,8 @@ var options = [
   '301381',
   '300441',
   '300451',
+  '303051',
+  '303181',
 
   '300061',
   '300071',
@@ -146,6 +162,8 @@ var options = [
   '301071',
   '300491',
   '300501',
+  '302751',
+  '303151',
 
   '300111',
   '300121',
@@ -156,6 +174,8 @@ var options = [
   '300481',
   '300511',
   '300521',
+  '303041',
+  '303161',
 
   '300171',
   '300181',
@@ -165,6 +185,8 @@ var options = [
   '301371',
   '300531',
   '300541',
+  '302711',
+  '303171',
 
   '300201',
   '300211',
@@ -174,6 +196,8 @@ var options = [
   '300461',
   '300561',
   '300571',
+  '303061',
+  '303191',
 
   '300231',
   '300241',
@@ -183,11 +207,15 @@ var options = [
   '300551',
   '300581',
   '300591',
+  '303071',
+  '303221',
 
   '300291',
   '301051',
+  '303131',
   '300471',
   '301061',
+  '303141',
 
   '20411',
   '20421',

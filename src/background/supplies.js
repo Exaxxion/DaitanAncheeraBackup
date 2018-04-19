@@ -3,6 +3,8 @@
     treasureHash: {},
     recovery:     {},
     powerUp:      {},
+    skillPlus:    {},
+    npcAugment:   {},
     treasure:     {},
     raid:         {},
     material:     {},
@@ -28,7 +30,7 @@
 
   window.Supplies = {
     Initialize: function(callback) {
-      var categories = ['supplyrecovery', 'supplypowerUp', 'supplytreasure', 'supplyraid', 'supplymaterial', 'supplyevent', 'supplycoop', 'supplymisc', 'supplydraw'];
+      var categories = ['supplyrecovery', 'supplypowerUp', 'supplyskillPlus', 'supplynpcAugment', 'supplytreasure', 'supplyraid', 'supplymaterial', 'supplyevent', 'supplycoop', 'supplymisc', 'supplydraw'];
       Storage.GetMultiple(categories, function(response) {
         var category;
         for (var i = 0; i < categories.length; i++) {
@@ -58,14 +60,19 @@
     InitializeDev: function() {
       var response = [];
       var item;
+      var qty;
       Object.keys(supplies).forEach(function(category) {
         if (category !== 'treasureHash') {
           Object.keys(supplies[category]).forEach(function(id) {
             item = supplies[category][id];
+            qty = item.count;
+            if (qty > 9999) {
+              qty = abbreviateNum(qty);
+            }
             response.push({addItem: {
               'id':       id,
               'category': category,
-              'number':   item.count,
+              'number':   qty,
               'name':     item.name,
               'sequence': item.sequence,
               'tooltip':  createTooltip(item.name)
@@ -122,37 +129,69 @@
       if (json !== undefined) {
         var updatedRecovery = false;
         var updatedPowerUp = false;
+        var updatedSkillPlus = false;
+        var updatedNpcAugment = false;
         var id;
+        var item;
         for (var i = 0; i < json.length; i++) {
           for (var j = 0; j < json[i].length; j++) {
-            if (i == 1) {
+            if (json[i][j].length) {
               for (var k = 0; k < json[i][j].length; k++) {
-                id = json[i][j][k].item_id;
-                if (supplies.powerUp[id] !== undefined) {
-                  if (updateSupply(id, 'powerUp', json[i][j][k].number)) {
-                    updatedPowerUp = true;
+                item = json[i][j][k];
+                id = item.item_id;
+                if (item.recovery) {
+                  if (supplies.recovery[id] !== undefined) {
+                    if (updateSupply(id, 'recovery', item.number)) {
+                      updatedRecovery = true;
+                    }
+                  } else {
+                    updatedRecovery = newSupply(id, 'recovery', item.number, item.name, id);
+                  }
+                } else if (item.add_skill_type) {
+                  if (supplies.skillPlus[id] !== undefined) {
+                    if (updateSupply(id, 'skillPlus', item.number)) {
+                      updatedSkillPlus = true;
+                    }
+                  } else {
+                    updatedSkillPlus = newSupply(id, 'skillPlus', item.number, item.name, '' + (100000 + parseInt(id)));
+                  }
+                } else if (i == 3) {
+                  if (supplies.npcAugment[id] !== undefined) {
+                    if (updateSupply(id, 'npcAugment', item.number)) {
+                      updatedNpcAugment = true;
+                    }
+                  } else {
+                    updatedNpcAugment = newSupply(id, 'npcAugment', item.number, item.name, '' + (100000 + parseInt(id)));
                   }
                 } else {
-                  updatedPowerUp = newSupply(id, 'powerUp', json[i][j][k].number, json[i][j][k].name, '' + (100000 + parseInt(id)));
+                  if (supplies.powerUp[id] !== undefined) {
+                    if (updateSupply(id, 'powerUp', item.number)) {
+                      updatedPowerUp = true;
+                    }
+                  } else {
+                    updatedPowerUp = newSupply(id, 'powerUp', item.number, item.name, '' + (100000 + parseInt(id)));
+                  }
                 }
               }
             } else {
-              id = json[i][j].item_id;
-              if (json[i][j].recovery) {
+              // possibly redundant now
+              item = json[i][j];
+              id = item.item_id;
+              if (item.recovery) {
                 if (supplies.recovery[id] !== undefined) {
-                  if (updateSupply(id, 'recovery', json[i][j].number)) {
+                  if (updateSupply(id, 'recovery', item.number)) {
                     updatedRecovery = true;
                   }
                 } else {
-                  updatedRecovery = newSupply(id, 'recovery', json[i][j].number, json[i][j].name, id);
+                  updatedRecovery = newSupply(id, 'recovery', item.number, item.name, id);
                 }
               } else {
                 if (supplies.powerUp[id] !== undefined) {
-                  if (updateSupply(id, 'powerUp', json[i][j].number)) {
+                  if (updateSupply(id, 'powerUp', item.number)) {
                     updatedPowerUp = true;
                   }
                 } else {
-                  updatedPowerUp = newSupply(id, 'powerUp', json[i][j].number, json[i][j].name, '' + (100000 + parseInt(id)));
+                  updatedPowerUp = newSupply(id, 'powerUp', item.number, item.name, '' + (100000 + parseInt(id)));
                 }
               }
             }
@@ -163,6 +202,12 @@
         }
         if (updatedPowerUp) {
           saveSupply('powerUp');
+        }
+        if (updatedSkillPlus) {
+          saveSupply('skillPlus');
+        }
+        if (updatedNpcAugment) {
+          saveSupply('npcAugment');
         }
       }
     },
@@ -241,16 +286,51 @@
     GetLoot: function(json) {
       var item;
       var updated = [];
-      var list    = json.rewards.reward_list;
+      var list;
 
-      for (var property in list) {
-        if (list.hasOwnProperty(property)) {
-          for (var i = 0; i < list[property].length; i++) {
-            item = list[property][i];
-            var category = getCategory(item.id, item.item_kind);
-            if (category !== undefined && incrementSupply(item.id, category, 1)) {
-              if (updated.indexOf(category) === -1) {
-                updated.push(category);
+      if (json.rewards && json.rewards.reward_list) {
+        list = json.rewards.reward_list;
+      } else if (json.notice_effect && json.notice_effect.show_open_red_chest && json.notice_effect.show_open_red_chest.result && json.notice_effect.show_open_red_chest.result.contents) {
+        list = json.notice_effect.show_open_red_chest.result.contents;
+      } else {
+        return;
+      }
+
+      if (list.length) {
+        for (var i = 0; i < list.length; i++) {
+          item = list[i];
+          var category = getCategory(item.id, item.item_kind);
+          if (category !== undefined && incrementSupply(item.id, category, 1)) {
+            if (updated.indexOf(category) === -1) {
+              updated.push(category);
+            }
+          }
+        }
+      } else {
+        for (var property in list) {
+          if (list.hasOwnProperty(property)) {
+            if (list[property].length) {
+              // old reward data json structure
+              for (var i = 0; i < list[property].length; i++) {
+                item = list[property][i];
+                var category = getCategory(item.id, item.item_kind);
+                if (category !== undefined && incrementSupply(item.id, category, 1)) {
+                  if (updated.indexOf(category) === -1) {
+                    updated.push(category);
+                  }
+                }
+              }
+            } else {
+              for (var key in list[property]) {
+                if (list[property].hasOwnProperty(key)) {
+                  item = list[property][key];
+                  var category = getCategory(item.id, item.item_kind);
+                  if (category !== undefined && incrementSupply(item.id, category, item.count)) {
+                    if (updated.indexOf(category) === -1) {
+                      updated.push(category);
+                    }
+                  }
+                }
               }
             }
           }
@@ -272,6 +352,22 @@
 
       for (var i = 0; i < updated.length; i++) {
         saveSupply(updated[i]);
+      }
+    },
+
+    GetArcarumChest: function(json) {
+      if (json.result && json.result.contents && json.result.contents.length) {
+        var results = json.result.contents;
+        if (results.length) {
+          for (var i = 0; i < results.length; i++) {
+            item = results[i];
+            if (item.ailment_id) continue;
+            category = getCategory(item.item_id, item.item_kind);
+            if (category !== undefined && incrementSupply(item.item_id, category, parseInt(item.num))) {
+              saveSupply(category);
+            }
+          }
+        }
       }
     },
 
@@ -313,7 +409,7 @@
       }
     },
 
-    PurchaseItem: function(json) {
+    PurchaseItem: function (json) {
       if (json.article.item_ids.length > 0 && json.article.is_get.result) {
         var updated  = [];
         var id       = json.article.item_ids[0];
@@ -509,20 +605,45 @@
         Message.Post(devID, {'setPlannerDropdowns': {type: type, build: planners[type]}});
         Message.Post(devID, {'generatePlanner': buildWeapon(type, planners[type])});
       }
+    },
+
+    RemoveInvalidItem: function (url) {
+      var category = 'supply';
+      var id = /(\d+).jpg/g.exec(url)[1];
+      if (url.indexOf('normal') !== -1) {
+        category += 'recovery';
+      } else if (url.indexOf('evolution') !== -1) {
+        category += 'powerUp';
+      } else if (url.indexOf('skillplus') !== -1) {
+        category += 'skillPlus';
+      } else if (url.indexOf('npcaugment') !== -1) {
+        category += 'npcAugment';
+      } else if (url.indexOf('ticket') !== -1) {
+        category += 'draw';
+      } else {
+        // probably will never occur
+        //http://game-a.granbluefantasy.jp/assets_en/img/sp/assets/item/article/s/
+      }
+      Storage.RemoveItem(category, id);
     }
   };
 
-  var getCategory = function(id, item_kind) {
-    if (item_kind === '4') {
-      return 'recovery';
-    } else if (item_kind === '8') {
-      return 'draw';
-    } else if (item_kind === '17') {
-      return 'powerUp';
-    } else if (item_kind === '10') {
-      return supplies.treasureHash[id];
-    } else {
-      return undefined;
+  var getCategory = function (id, item_kind) {
+    switch (item_kind) {
+      case '4':
+        return 'recovery';
+      case '8':
+        return 'draw';
+      case '17':
+        return 'powerUp';
+      case '67':
+        return 'skillPlus';
+      case '73':
+        return 'npcAugment';
+      case '10':
+        return supplies.treasureHash[id];
+      default:
+        return undefined;
     }
   };
 
@@ -551,7 +672,7 @@
     if (supply !== undefined && supply.count !== intNum) {
       supply.count = intNum;
       if (intNum > 9999) {
-        intNum = 9999;
+        intNum = abbreviateNum(intNum);
       }
       Message.PostAll({'setText': {
         'id':    '#supply-' + supply.sequence + '-' + id + '-count',
@@ -592,7 +713,7 @@
 
     var intNum = number;
     if (number > 9999) {
-      intNum = 9999;
+      intNum = abbreviateNum(number);
     }
 
     Message.PostAll({addItem: {
@@ -708,6 +829,23 @@
     }
     return response;
   };
+
+  var abbreviateNum = function(value) {
+    var newValue = value;
+    if (value >= 1000) {
+      var suffixes = ["", "k", "m", "b", "t"];
+      var suffixNum = Math.floor(("" + value).length / 3);
+      var shortValue = '';
+      for (var precision = 2; precision >= 1; precision--) {
+        shortValue = parseFloat((suffixNum != 0 ? (value / Math.pow(1000, suffixNum)) : value).toPrecision(precision));
+        var dotLessShortValue = (shortValue + '').replace(/[^a-zA-Z 0-9]+/g, '');
+        if (dotLessShortValue.length <= 2) { break; }
+      }
+      if (shortValue % 1 != 0) shortNum = shortValue.toFixed(1);
+      newValue = shortValue + suffixes[suffixNum];
+    }
+    return newValue;
+  }
 
   var filterSupplies = function(category) {
     filter = category;

@@ -3,7 +3,7 @@
   var currURL    = '';
   var pageLoaded = true;
 
-  var CURRENT_VERSION = '1.2.1';
+  var CURRENT_VERSION = '1.2.2';
   var BASE_VERSION    = '1.0.1';
   var patchNotes = {
     '1.0.1': {
@@ -70,6 +70,19 @@
         '-Fixed ougi toggle button not visually updating',
         'sometimes after refresh',
         '-Faster refresh is now its on toggleable option']
+    },
+    '1.2.2': {
+      'index': 9,
+      'notes': ['-Fixed issue with turn counter not resetting',
+        'correctly in new raids and quest stages',
+        '-Fixed item acquisition from quests',
+        '-Removed items that no longer exist in the game',
+        '-Updated HL pendant cap and added',
+        'crew pendant tracker',
+        '-Updated raid list to include the latest raids',
+        '-Added Arcarum weekly tracker',
+        '-Faster refresh is now its on toggleable option',
+        '-Arcarum drops/shop now updates info']
     }
   };
   var patchNoteList = [
@@ -81,7 +94,8 @@
     '1.1.4',
     '1.1.5',
     '1.2.0',
-    '1.2.1'
+    '1.2.1',
+    '1.2.2'
   ];
   var currentVersion = undefined;
 
@@ -135,6 +149,12 @@
       });
     }
 
+    if (message.getExternalOptions) {
+      sendResponse({
+        'value': Options.GetExternal()
+      });
+    }
+
     if (message.consoleLog) {
       console.log(message.consoleLog.sender + ': ' + message.consoleLog.message);
     }
@@ -159,7 +179,26 @@
         Profile.SetChips(msg.chips.amount);
       }
       if (msg.profile) {
-        Profile.SetHomeProfile(msg.profile.rank, msg.profile.rankPercent, msg.profile.job, msg.profile.jobPercent, msg.profile.lupi, msg.profile.jobPoints, msg.profile.crystal, msg.profile.renown, msg.profile.prestige, msg.profile.arcarumTicket, msg.profile.arcapoints);
+        Profile.SetHomeProfile(
+          msg.profile.rank,
+          msg.profile.rankPercent,
+          msg.profile.job,
+          msg.profile.jobPercent,
+          msg.profile.lupi,
+          msg.profile.jobPoints,
+          msg.profile.crystal,
+          msg.profile.renown,
+          msg.profile.prestige,
+          msg.profile.arcarumTicket,
+          msg.profile.arcapoints
+        );
+      }
+      if (msg.arcarumWeekly) {
+        Dailies.CheckArcarum(msg.arcarumWeekly);
+      }
+      if (msg.arcarumCheckpoint) {
+        Dailies.ArcarumCheckpoint(msg.arcarumCheckpoint);
+        Profile.AddArcapoints(msg.arcarumCheckpoint);
       }
       if (msg.event) {
         //Quest.SetEvent(msg.event);
@@ -286,6 +325,9 @@
       if (message.weaponBuild) {
         Supplies.BuildWeapon(message.id, message.weaponBuild);
       }
+      if (message.removeItem) {
+        Supplies.RemoveInvalidItem(message.removeItem);
+      }
       if (message.consoleLog) {
         console.log(message.consoleLog);
       }
@@ -335,6 +377,7 @@
           Supplies.GetLoot(message.request.response);
           Profile.CompleteQuest(message.request.response);
           Quest.CheckSpecialQuest(message.request.response);
+          Dailies.CompleteQuest(message.request.response);
         }
         // //initialize raid -> SELECTING RAID
         // if(message.request.url.indexOf('/quest/assist_list') !== -1) {
@@ -362,6 +405,7 @@
         if (message.request.url.indexOf('/resultmulti/data/') !== -1) {
           Supplies.GetLoot(message.request.response);
           Profile.CompleteRaid(message.request.response);
+          Quest.CheckSpecialQuest(message.request.response);
           Dailies.CompleteCoop(message.request.response, message.id);
           Dailies.CompleteRaid(message.request.response);
         }
@@ -436,7 +480,7 @@
           Profile.ReceiveAllGifts(message.request.response, message.id);
         }
         //treasure trade purchase
-        if (message.request.url.indexOf('/shop_exchange/purchase/') !== -1) {
+        if (message.request.url.indexOf('/shop_exchange/purchase/') !== -1 || message.request.url.indexOf('/arcarum/purchase?') !== -1) {
           Supplies.PurchaseItem(message.request.response);
           Profile.PurchaseItem(message.request.response);
           Dailies.PurchaseDistinction(message.request.response);
@@ -556,7 +600,14 @@
         }
         //arcarum
         if (message.request.url.indexOf('/rest/arcarum/start_stage?') !== -1) {
-          Profile.StartArcarumStage(message.request.response);
+          Profile.ProcessArcarumStage(message.request.response);
+        }
+        if (message.request.url.indexOf('/rest/arcarum/stage?') !== -1) {
+          Profile.ProcessArcarumStage(message.request.response);
+          Supplies.GetLoot(message.request.response);
+        }
+        if (message.request.url.indexOf('/rest/arcarum/open_chest?') !== -1) {
+          Supplies.GetArcarumChest(message.request.response);
         }
       }
     };

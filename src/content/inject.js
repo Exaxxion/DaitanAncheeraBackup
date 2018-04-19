@@ -31,80 +31,127 @@
       syncAll: false,
       syncTurns: false,
       syncBossHP: false
-    };
+    },
+    port = null,
+    pendingMsgs = [],
+    context = window.parent;
 
-  var event = new CustomEvent('ancClientMessage', {
-    detail: {
-      'requestSyncOptions': true
+  var initChannelSetup = function (evt) {
+    if (evt.data.init !== 'ancInit') {
+      return;
     }
-  });
-  setTimeout(function () { window.dispatchEvent(event); }, 1000);
+    port = evt.ports[0];
+    port.onmessage = handleMessage;
+    port.postMessage({ initExternal: true });
+    window.removeEventListener('message', initChannelSetup, true);
+    for (var i = 0, l = pendingMsgs.length; i < l; i++) {
+      port.postMessage(pendingMsgs[i]);
+    }
+    pendingMsgs = [];
+    for (var i in evt.data.options) {
+      if (!evt.data.options.hasOwnProperty(i)) continue;
+      options[i] = evt.data.options[i];
+    }
+    evt.preventDefault();
+    evt.stopImmediatePropagation();
+  }
+  window.addEventListener('message', initChannelSetup, true);
 
-  window.addEventListener('ancUpdateClient', function (evt) {
-    if (typeof evt.detail.gameState !== "undefined") {
-      if (typeof stage !== "undefined" && stage !== null) {
-        if (typeof stage.gGameStatus !== "undefined" && stage.gGameStatus !== null) {
-          var gs = evt.detail.gameState;
-          if ((options.syncAll || options.syncTurns) && gs.turn !== null && gs.turn > 0) {
-            gameVars.gs.turn = gs.turn;
-            updateTurns();
-          }
-          if (options.syncAll || options.syncBossHP) {
-            if (gs.ignoredEnemyHPValues !== null) {
-              for (var i = 0; i < gs.enemies.length; i++) {
-                if (typeof gs.enemies[i] !== "undefined" && gs.enemies[i] !== null) {
-                  gameVars.gs.boss.param[i].hp = gs.enemies[i].currHP;
-                  gameVars.gs.boss.param[i].hpmax = gs.enemies[i].maxHP;
-                  stage.gGameStatus.boss.param[i].hp = gameVars.gs.boss.param[i].hp;
-                  stage.gGameStatus.boss.param[i].hpmax = gameVars.gs.boss.param[i].hpmax;
-                }
-              }
+  var postMessage = function (msg) {
+    if (port !== null) {
+      port.postMessage(msg);
+    } else {
+      pendingMsgs.push(msg);
+    }
+  };
+
+  function handleMessage(msg) {
+    var message = msg.data;
+    if (typeof message.fastRefresh !== "undefined") {
+      window.history.go(-1);
+      window.setTimeout(function () { window.history.go(1); }, 100);
+    }
+    if (typeof message.gameState !== "undefined") {
+      var gs = message.gameState;
+      if (options.syncAll || options.syncTurns) {
+        if (gs.turn !== null && gs.turn > 0) {
+          gameVars.gs.turn = gs.turn;
+          if (typeof context.stage !== "undefined" && context.stage !== null) {
+            // this shit goes null/undefined again mid-function
+            if (typeof context.stage.gGameStatus !== "undefined" && context.stage.gGameStatus !== null) {
+              context.stage.gGameStatus.turn = gs.turn;
             }
-            if (gs.ignoredEnemyHPValues !== null) {
-              for (var i = 0; i < gs.ignoredEnemyHPValues.length; i++) {
-                if (typeof gs.ignoredEnemyHPValues[i] !== "undefined" && gs.ignoredEnemyHPValues[i] !== null && gs.ignoredEnemyHPValues[i].length) {
-                  gameVars.gs.boss.param[i].hpignored = gs.ignoredEnemyHPValues[i];
+          }
+        }
+      }
+      if (options.syncAll || options.syncBossHP) {
+        if (gs.ignoredEnemyHPValues !== null) {
+          for (var i = 0; i < gs.enemies.length; i++) {
+            if (typeof gs.enemies[i] !== "undefined" && gs.enemies[i] !== null) {
+              gameVars.gs.boss.param[i].hp = gs.enemies[i].currHP;
+              gameVars.gs.boss.param[i].hpmax = gs.enemies[i].maxHP;
+              if (typeof context.stage !== "undefined" && context.stage !== null) {
+                if (typeof context.stage.gGameStatus !== "undefined" && context.stage.gGameStatus !== null) {
+                  if (typeof context.stage.gGameStatus.boss !== "undefined" && context.stage.gGameStatus.boss !== null) {
+                    if (typeof context.stage.gGameStatus.boss.param[i] !== "undefined" && context.stage.gGameStatus.boss.param[i] !== null) {
+                      context.stage.gGameStatus.boss.param[i].hp = gameVars.gs.boss.param[i].hp;
+                      context.stage.gGameStatus.boss.param[i].hpmax = gameVars.gs.boss.param[i].hpmax;
+                    }
+                  }
                 }
               }
             }
           }
         }
+        if (gs.ignoredEnemyHPValues !== null) {
+          for (var i = 0; i < gs.ignoredEnemyHPValues.length; i++) {
+            if (typeof gs.ignoredEnemyHPValues[i] !== "undefined" && gs.ignoredEnemyHPValues[i] !== null && gs.ignoredEnemyHPValues[i].length) {
+              gameVars.gs.boss.param[i].hpignored = gs.ignoredEnemyHPValues[i];
+            }
+          }
+        }
       }
     }
-    if (typeof evt.detail.updateAllSyncOptions !== "undefined") {
-      options = evt.detail.updateAllSyncOptions.options;
+    if (typeof message.updateAllSyncOptions !== "undefined") {
+      options = message.updateAllSyncOptions.options;
     }
-    if (typeof evt.detail.updateSyncOptions !== "undefined") {
-      options[evt.detail.updateSyncOptions.key] = evt.detail.updateSyncOptions.val;
+    if (typeof message.updateSyncOptions !== "undefined") {
+      options[message.updateSyncOptions.key] = message.updateSyncOptions.val;
     }
-    if (typeof evt.detail.updateOugiToggleBtn !== "undefined") {
-      if (stage.gGameStatus.lock !== evt.detail.updateOugiToggleBtn) {
-        //$('.btn-lock').attr('class', $('.btn-lock').attr('class').replace('lock' + stage.gGameStatus.lock, 'lock' + evt.detail.updateOugiToggleBtn));
-        stage.gGameStatus.lock = evt.detail.updateOugiToggleBtn;
+    if (typeof message.updateOugiToggleBtn !== "undefined") {
+      if (context.stage.gGameStatus.lock !== message.updateOugiToggleBtn) {
+        //$('.btn-lock').attr('class', $('.btn-lock').attr('class').replace('lock' + context.stage.gGameStatus.lock, 'lock' + message.updateOugiToggleBtn));
+        context.stage.gGameStatus.lock = message.updateOugiToggleBtn;
       }
     }
-  });
+  }
 
   function updateTurns() {
     if (!options.syncAll && !options.syncTurns) {
       return;
     }
-    if (stage.gGameStatus.turn < gameVars.gs.turn) {
-      stage.gGameStatus.turn = gameVars.gs.turn;
+    if (gameVars.gs.turn === -1) {
+      return;
+    }
+    if (typeof context.stage === "undefined" || context.stage === null) {
+      return;
+    }
+    if (typeof context.stage.gGameStatus === "undefined" || context.stage.gGameStatus === null) {
+      return;
+    }
+    if (context.stage.gGameStatus.turn < gameVars.gs.turn) {
+      context.stage.gGameStatus.turn = gameVars.gs.turn;
     } else {
-      gameVars.gs.turn = stage.gGameStatus.turn;
+      gameVars.gs.turn = context.stage.gGameStatus.turn;
     }
   }
 
   function consoleLog(msg) {
-    var event = new CustomEvent('ancClientMessage', {
-      detail: {
-        'consoleLog': {
-          'msg': msg
-        }
+    postMessage({
+      'consoleLog': {
+        'msg': msg
       }
     });
-    window.dispatchEvent(event);
   }
 
   function observeEnemyHP(i) {
@@ -114,16 +161,16 @@
   }
 
   function updateEnemyHP(i) {
-    if (!isNaN(stage.gGameStatus.boss.param[i].hp)) {
+    if (!isNaN(context.stage.gGameStatus.boss.param[i].hp)) {
       // FUCKING WHY CYGAMES
-      if (typeof stage.gGameStatus.boss.param[i].hp !== "number") {
-        stage.gGameStatus.boss.param[i].hp = parseInt(stage.gGameStatus.boss.param[i].hp);
+      if (typeof context.stage.gGameStatus.boss.param[i].hp !== "number") {
+        context.stage.gGameStatus.boss.param[i].hp = parseInt(context.stage.gGameStatus.boss.param[i].hp);
       }
-      if (stage.gGameStatus.boss.param[i].hp !== gameVars.gs.boss.param[i].hp) {
+      if (context.stage.gGameStatus.boss.param[i].hp !== gameVars.gs.boss.param[i].hp) {
         if (gameVars.gs.boss.param[i].hpignored.length > 0) {
           var isIgnored = false;
           for (var j = 0; j < gameVars.gs.boss.param[i].hpignored.length; j++) {
-            if (stage.gGameStatus.boss.param[i].hp === gameVars.gs.boss.param[i].hpignored[j] && gameVars.gs.attacking === 1) {
+            if (context.stage.gGameStatus.boss.param[i].hp === gameVars.gs.boss.param[i].hpignored[j] && gameVars.gs.attacking === 1) {
               isIgnored = true;
               break;
             }
@@ -134,13 +181,13 @@
 
           if (lockBossHP) {
             if (isIgnored) {
-              stage.gGameStatus.boss.param[i].hp = gameVars.gs.boss.param[i].hp;
-              stage.gGameStatus.boss.param[i].hpmax = gameVars.gs.boss.param[i].hpmax;
+              context.stage.gGameStatus.boss.param[i].hp = gameVars.gs.boss.param[i].hp;
+              context.stage.gGameStatus.boss.param[i].hpmax = gameVars.gs.boss.param[i].hpmax;
             }
           }
         }
-        gameVars.gs.boss.param[i].hp = stage.gGameStatus.boss.param[i].hp;
-        gameVars.gs.boss.param[i].hpmax = stage.gGameStatus.boss.param[i].hpmax;
+        gameVars.gs.boss.param[i].hp = context.stage.gGameStatus.boss.param[i].hp;
+        gameVars.gs.boss.param[i].hpmax = context.stage.gGameStatus.boss.param[i].hpmax;
         var hpPercent = '' + Math.ceil((gameVars.gs.boss.param[i].hp / gameVars.gs.boss.param[i].hpmax) * 100);
         if (hpPercent !== $('#enemy-hp' + i).text()) {
           $('#enemy-hp' + i).text(hpPercent);
@@ -151,14 +198,14 @@
 
   new MutationObserver(function (mutations) {
     mutations.forEach(function (mutation) {
-      if (typeof stage !== "undefined" && stage !== null) {
-        if (typeof stage.gGameStatus !== "undefined" && stage.gGameStatus !== null) {
+      if (typeof context.stage !== "undefined" && context.stage !== null) {
+        if (typeof context.stage.gGameStatus !== "undefined" && context.stage.gGameStatus !== null) {
           if (options.syncAll || options.syncTurns) {
-            if (gameVars.gs.attacking !== stage.gGameStatus.attacking) {
-              gameVars.gs.attacking = stage.gGameStatus.attacking;
+            if (gameVars.gs.attacking !== context.stage.gGameStatus.attacking) {
+              gameVars.gs.attacking = context.stage.gGameStatus.attacking;
               if (gameVars.gs.attacking === 0) {
                 lockBossHP = false;
-                for (var i = 0; i < stage.gGameStatus.boss.param.length; i++) {
+                for (var i = 0; i < context.stage.gGameStatus.boss.param.length; i++) {
                   gameVars.gs.boss.param[i].hpignored = [];
                 }
               }

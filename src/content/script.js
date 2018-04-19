@@ -14,7 +14,14 @@
       syncAll: false,
       syncTurns: false,
       syncBossHP: false
-    };
+    },
+    shadowScript = null,
+    externalChannel = null,
+    pendingExternalMsgs = [],
+    isChannelReady = false,
+    hasProcessedHome = false,
+    hasProcessedArcarumCheckpoint = false,
+    arcaWeeklyPoints = 0;
 
 
   var injectSyncScript = function() {
@@ -22,23 +29,47 @@
       return;
     }
     syncInit = true;
-    var s = document.createElement('script');
-    s.type = 'text/javascript';
-    s.charset = 'utf-8';
-    s.src = chrome.extension.getURL('src/content/inject.js');
-    document.getElementsByTagName("head")[0].appendChild(s);
+    $.get(chrome.extension.getURL('src/content/inject.js'), function (result) {
+      var shadowParent = document.createElement("div");
+      document.documentElement.appendChild(shadowParent);
+      var shadowRoot = shadowParent.attachShadow({ mode: 'closed' });;
+      shadowScript = document.createElement("iframe");
+      shadowScript.style = "display: none";
+      shadowRoot.appendChild(shadowScript);
+      var s = document.createElement('script');
+      s.type = 'text/javascript';
+      s.charset = 'utf-8';
+      s.textContent = result;
+      shadowScript.contentDocument.documentElement.appendChild(s);
+      externalChannel = new MessageChannel();
+      externalChannel.port1.onmessage = handleExternalMessage;
+      shadowScript.contentWindow.postMessage({
+        init: 'ancInit',
+        'options': options
+      }, "*", [externalChannel.port2]);
+    });
   };
 
-  var updateSyncOption = function (optionKey, optionVal) {
-    var event = new CustomEvent('ancUpdateClient', {
-      detail: {
-        'updateSyncOptions': {
-          'key': optionKey,
-          'val': optionVal
-        }
+  var sendExternalMessage = function (msg) {
+    if (!externalChannel || !isChannelReady) {
+      pendingExternalMsgs.push(msg);
+      return;
+    }
+    externalChannel.port1.postMessage(msg);
+  };
+
+  function handleExternalMessage(msg) {
+    var message = msg.data;
+    if (message.initExternal) {
+      isChannelReady = true;
+      for (var i = 0, l = pendingExternalMsgs.length; i < l; i++) {
+        externalChannel.port1.postMessage(pendingExternalMsgs[i]);
       }
-    });
-    window.dispatchEvent(event);
+      pendingExternalMsgs = [];
+    }
+    if (message.consoleLog) {
+      consoleLog("external", message.consoleLog.msg);
+    }
   };
 
   chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
@@ -48,53 +79,20 @@
 
     if (message.initialize) {
       chrome.runtime.sendMessage({
-        getOption: 'syncAll'
+        getExternalOptions: true
       }, function (response) {
         if (response.value !== null) {
-          if (response.value) {
-            injectSyncScript();
-            options.syncAll = true;
-            updateSyncOption("syncAll", options.syncAll);
-          }
-        }
-      });
-
-      chrome.runtime.sendMessage({
-        getOption: 'syncTurns'
-      }, function (response) {
-        if (response.value !== null) {
-          if (response.value) {
-            injectSyncScript();
-            options.syncTurns = true;
-            updateSyncOption("syncTurns", options.syncTurns);
-          }
-        }
-      });
-
-      chrome.runtime.sendMessage({
-        getOption: 'syncBossHP'
-      }, function (response) {
-        if (response.value !== null) {
-          if (response.value) {
-            injectSyncScript();
-            options.syncBossHP = true;
-            updateSyncOption("syncBossHP", options.syncBossHP);
-          }
-        }
-      });
-      
-      window.addEventListener('ancClientMessage', function (evt) {
-        if (evt.detail.consoleLog !== undefined) {
-        }
-        if (evt.detail.requestSyncOptions !== undefined) {
-          var event = new CustomEvent('ancUpdateClient', {
-            detail: {
-              'updateAllSyncOptions': {
-                'options': options
-              }
+          var doInjectScript = false;
+          for (var i in response.value) {
+            if (!response.value.hasOwnProperty(i)) continue;
+            options[i] = response.value[i];
+            if (options[i]) {
+              doInjectScript = true;
             }
-          });
-          window.dispatchEvent(event);
+          }
+          if (doInjectScript) {
+            injectSyncScript();
+          }
         }
       });
     }
@@ -166,21 +164,24 @@
               }
             }
           }
-          updateClient(gameState, message.updateTurnCounter.ignoredEnemyHPValues);
+          updateClient(gameState, message.updateTurnCounter.ignoredEnemyHPValues, message.updateTurnCounter.type);
         }
       }
     }
 
     if (message.checkOugiToggle !== undefined) {
       if (!$('.btn-lock').hasClass('lock' + message.checkOugiToggle)) {
-        var event = new CustomEvent('ancUpdateClient', {
-          detail: {
-            'updateOugiToggleBtn': message.checkOugiToggle
-          }
+        sendExternalMessage({
+          'updateOugiToggleBtn': message.checkOugiToggle
         });
-        window.dispatchEvent(event);
         ougiBugged = true;
       }
+    }
+
+    if (message.fastRefresh) {
+      sendExternalMessage({
+        'fastRefresh': true
+      });
     }
   });
 
@@ -203,42 +204,7 @@
         messageDevTools({assault: {'times': times}});
       }
     } else if (url.indexOf('#mypage') !== -1) {
-      if ($('.txt-do-remain-on-button').length !== 0) {
-        messageDevTools({defense:{
-          'time':   parseInt($('.txt-do-remain-on-button').text()),
-          'active': false
-        }});
-      } else if ($('.do-underway').length !== 0) {
-        messageDevTools({defense:{
-          'time':   -1,
-          'active': true
-        }});
-      } else {
-        messageDevTools({defense:{
-          'time':   -1,
-          'active': false
-        }});
-      }
-
-      var $prtUserInfo      = $('.prt-user-info');
-      var $prtInfoStatus    = $prtUserInfo.children('.prt-info-status');
-      var $prtInfoPossessed = $prtUserInfo.children('.prt-info-possessed');
-      var $prtMbpStatus     = $prtInfoPossessed.eq(1).children('#mbp-status');
-      var $prtArcarumStatus = $prtInfoPossessed.eq(1).children('#arcarum-status');
-
-      messageDevTools({profile: {
-        'rank':          $prtInfoStatus.find('.txt-rank-value').attr('title'),
-        'rankPercent':   $prtInfoStatus.find('.prt-rank-gauge-inner').attr('style'),
-        'job':           $prtInfoStatus.find('.txt-joblv-value').attr('title'),
-        'jobPercent':    $prtInfoStatus.find('.prt-job-gauge-inner').attr('style'),
-        'lupi':          $prtInfoPossessed.eq(0).find('.prt-lupi').text(),
-        'jobPoints':     $prtInfoPossessed.eq(0).find('.prt-jp').text(),
-        'crystal':       $prtInfoPossessed.eq(0).find('.prt-stone').text(),
-        'renown':        $prtMbpStatus.find('.txt-current-point').eq(0).text(),
-        'prestige':      $prtMbpStatus.find('.txt-current-point').eq(1).text(),
-        'arcarumTicket': $prtArcarumStatus.find('.prt-arcarum-passport-box').text(),
-        'arcapoints':    $prtArcarumStatus.find('.prt-arcarum-point-box').text()
-      }});
+      
     } else if (url.indexOf('#coopraid/room/') !== -1) {
       messageDevTools({ coopCode: $('.txt-room-id').eq(0).text() });
     } else if (url.indexOf('#casino') !== -1) {
@@ -294,19 +260,134 @@
   };
 
   var updateClient = function (gs, ignoredEnemyHPValues) {
-    var event = new CustomEvent('ancUpdateClient', {
-      detail: {
-        'gameState': {
-          'turn': gs.turn,
-          'enemies': gs.enemies,
-          'ignoredEnemyHPValues': ignoredEnemyHPValues
-        }
+    sendExternalMessage({
+      'gameState': {
+        'turn': gs.turn,
+        'enemies': gs.enemies,
+        'ignoredEnemyHPValues': ignoredEnemyHPValues
       }
     });
-    window.dispatchEvent(event);
   };
   
   $(document).ready(function () {
-    messageDevTools({'initialize': true});
+    messageDevTools({ 'initialize': true });
+
+    // brute force searching for arcapoints
+    new MutationObserver(function (mutations) {
+      mutations.forEach(function (mutation) {
+        if (document.location.href.indexOf('#arcarum2') !== -1) {
+          if ($('.pop-point-detail').length) {
+            var $arcarumInfo = $('.pop-point-detail').find('.txt-point-num');
+            var pts = '' + $arcarumInfo.find('.txt-weekly-point').text();
+            if (arcaWeeklyPoints !== pts) {
+              arcaWeeklyPoints = pts;
+              messageDevTools({
+                arcarumWeekly: {
+                  'points': arcaWeeklyPoints,
+                  'max':    $arcarumInfo.find('.txt-weekly-max-point').text()
+                }
+              });
+            }
+          } else if (!hasProcessedArcarumCheckpoint && $('.pop-check-point').length) {
+            var $arcarumInfo = $('.pop-check-point');
+            var val = $arcarumInfo.find('.txt-arcarum-point-num').text().replace('+', '');
+            if (!isNaN(val)) {
+              messageDevTools({
+                arcarumCheckpoint: {
+                  'points': val
+                }
+              });
+              hasProcessedArcarumCheckpoint = true;
+            }
+          }
+          return;
+        }
+        if (document.location.href.indexOf('#mypage') !== -1) {
+          if (!hasProcessedHome) {
+            if ($('.prt-user-info').length) {
+              // old defend order garbage
+              //if ($('.txt-do-remain-on-button').length !== 0) {
+              //  messageDevTools({
+              //    defense: {
+              //      'time': parseInt($('.txt-do-remain-on-button').text()),
+              //      'active': false
+              //    }
+              //  });
+              //} else if ($('.do-underway').length !== 0) {
+              //  messageDevTools({
+              //    defense: {
+              //      'time': -1,
+              //      'active': true
+              //    }
+              //  });
+              //} else {
+              //  messageDevTools({
+              //    defense: {
+              //      'time': -1,
+              //      'active': false
+              //    }
+              //  });
+              //}
+
+              var $prtUserInfo = $('.prt-user-info');
+              var $prtInfoStatus = $prtUserInfo.children('.prt-info-status');
+              var $prtInfoPossessed = $prtUserInfo.children('.prt-info-possessed');
+              var $prtMbpStatus = $prtInfoPossessed.eq(1).children('#mbp-status');
+              var $prtArcarumStatus = $prtInfoPossessed.eq(1).children('#arcarum-status');
+              var profile = {
+                'profile': {
+                  'rank': $prtInfoStatus.find('.txt-rank-value').attr('title'),
+                  'rankPercent': $prtInfoStatus.find('.prt-rank-gauge-inner').attr('style'),
+                  'job': $prtInfoStatus.find('.txt-joblv-value').attr('title'),
+                  'jobPercent': $prtInfoStatus.find('.prt-job-gauge-inner').attr('style'),
+                  'lupi': $prtInfoPossessed.eq(0).find('.prt-lupi').text(),
+                  'jobPoints': $prtInfoPossessed.eq(0).find('.prt-jp').text(),
+                  'crystal': $prtInfoPossessed.eq(0).find('.prt-stone').text(),
+                  'renown': $prtMbpStatus.find('.txt-current-point').eq(0).text(),
+                  'prestige': $prtMbpStatus.find('.txt-current-point').eq(1).text(),
+                  'arcarumTicket': $prtArcarumStatus.find('.prt-arcarum-passport-box').text(),
+                  'arcapoints': $prtArcarumStatus.find('.prt-arcarum-point-box').text()
+                }
+              };
+
+              var stopProcess = false;
+
+              for (key in profile.profile) {
+                if (!profile.hasOwnProperty(key)) continue;
+                if (profile[key] === null || profile[key] === undefined || profile[key] === '') {
+                  stopProcess = true;
+                }
+              }
+
+              if (!stopProcess) {
+                messageDevTools(profile);
+                hasProcessedHome = true;
+              }
+            }
+          }
+          if ($('.pop-arcarum-point-detail').length) {
+            var $arcarumInfo = $('.pop-arcarum-point-detail').find('.txt-point-num').text().split('/');
+            if ($arcarumInfo.length === 2) {
+              var pts = '' + $arcarumInfo[0];
+              if (arcaWeeklyPoints !== pts) {
+                arcaWeeklyPoints = pts;
+                messageDevTools({
+                  arcarumWeekly: {
+                    'points': arcaWeeklyPoints,
+                    'max':    $arcarumInfo[1]
+                  }
+                });
+              }
+            }
+          }
+          return;
+        }
+      });
+    }).observe(document, { attributes: true, attributeOldValue: true, characterData: false, subtree: true, childList: true });
+
+    window.addEventListener("hashchange", function (event) {
+      hasProcessedHome = false;
+      hasProcessedArcarumCheckpoint = false;
+    });
   });
 })();

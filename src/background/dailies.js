@@ -1,6 +1,6 @@
 (function() {
   var dailyNames   = ['draw-rupie', 'tweet', 'coop'];
-  var weeklyNames  = ['renown'];
+  var weeklyNames  = ['renown', 'arcarum'];
   var monthlyNames = ['moons'];
   var drawCount    = 101;
   var coopDailies  = [];
@@ -16,19 +16,26 @@
     '1': 0,
     '2': 0,
     '3': 0,
-    '4': 0
+    '4': 0,
+    '7': 0
   };
   var renownMax = {
     '1': 2000,
     '2': 500,
     '3': 500,
-    '4': 500
+    '4': 1000,
+    '7': 200
   };
   var renownIncreasedMax = {
     '1': 4000,
     '2': 1000,
     '3': 1000,
-    '4': 1000
+    '4': 2000,
+    '7': 400
+  };
+  var arcarum = {
+    'points': 0,
+     'max': 4000
   };
     //http://gbf.game.mbga.jp/?opensocial_viewer_id=132334696&token=64a1af77c9143220e437#quest/index/100012/0
   var dailiesData = {
@@ -36,7 +43,8 @@
       '1': 2000,
       '2': 500,
       '3': 500,
-      '4': 500
+      '4': 1000,
+      '7': 200
     },
     'moons': {
       '30031': 1,
@@ -71,11 +79,16 @@
         'max': ''
       },
     },
-    'renown' : {
+    'renown': {
       '1': 0,
       '2': 0,
       '3': 0,
-      '4': 0
+      '4': 0,
+      '7': 0
+    },
+    'arcarum': {
+      'points': 0,
+      'max': 4000
     },
     'moons': {
       '30031': 1,
@@ -206,17 +219,13 @@
 
       Storage.GetMultiple(['dailies'], function(response) {
         if (response['dailies'] !== undefined) {
-          if (response['dailies']['primarchs'] === undefined) {
-            for (var key in dailies) {
-              if (response['dailies'][key] == undefined) {
-                response['dailies'][key] = dailies[key];
-              }
+          for (var key in dailies) {
+            if (response['dailies'][key] == undefined) {
+              response['dailies'][key] = dailies[key];
             }
-            dailies = response['dailies'];
-            Storage.Set('dailies', dailies);
-          } else {
-            dailies = response['dailies'];
           }
+          dailies = response['dailies'];
+          Storage.Set('dailies', dailies);
         } else {
           Storage.Set('dailies', dailies);
         }
@@ -279,6 +288,10 @@
       response = response.concat(recursiveSearch(dailies, []));
       response.push({'hideObject': {
         'id':    '#weekly-prestige',
+        'value': !isHL
+      }});
+      response.push({'hideObject': {
+        'id':    '#weekly-crew-prestige',
         'value': !isHL
       }});
 
@@ -391,6 +404,16 @@
       }
     },
 
+    CompleteQuest: function (json) {
+      if (json.arcarum_info === undefined || json.arcarum_info === null) {
+        return;
+      }
+      if (json.arcarum_info.point === undefined || json.arcarum_info.point === null) {
+        return;
+      }
+      setDailies([['arcarum', 'points'], dailies.arcarum.points + json.arcarum_info.point]);
+    },
+
     CompleteRaid: function(json) {
       var path;
       var id;
@@ -417,8 +440,22 @@
       });
       var path = json.mbp_limit_info['92002'].limit_info['10100'];
       array.push(['renown', '' + path.param.mbp_id], parseInt(path.data.weekly.get_number));
+      path = json.mbp_limit_info['92002'].limit_info['20300'];
+      array.push(['renown', '' + path.param.mbp_id], parseInt(path.data.weekly.get_number));
       setDailies(array);
     },
+
+    CheckArcarum: function(json) {
+      var array = [];
+      array.push(['arcarum', 'points'], parseInt(json.points));
+      array.push(['arcarum', 'max'], parseInt(json.max));
+      setDailies(array);
+    },
+
+    ArcarumCheckpoint: function(json) {
+      setDailies([['arcarum', 'points'], dailies.arcarum.points + parseInt(json.points)]);
+    },
+
     CheckTweet: function(json) {
       if (json.twitter.campaign_info.is_avail_twitter !== undefined) {
         if (json.twitter.campaign_info.is_avail_twitter === true) {
@@ -579,7 +616,12 @@
             break;
           }
         }
-
+      }
+    } else if (category[0] === 'arcarum') {
+      var cat = category[0];
+      var array = Object.keys(dailies[cat]);
+      if (dailies[cat].points < dailies[cat].max) {
+        collapse = false;
       }
     } else if (category[0] === 'moons') {
       var cat   = category[0];

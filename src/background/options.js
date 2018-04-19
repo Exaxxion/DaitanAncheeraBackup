@@ -117,6 +117,13 @@
     '300471', '301061'
   ];
 
+  var externalOptions = [
+    'syncAll',
+    'syncTurns',
+    'syncBossHP',
+    'fasterRefresh'
+  ];
+
   var isHL = false;
   var responseList = {};
 
@@ -170,7 +177,16 @@
       }
       return options[id];
     },
-    Set: function(id, value) {
+    GetExternal: function () {
+      var optionsMsg = {};
+      for (var i = 0; i < externalOptions.length; i++) {
+        if (options[externalOptions[i]] !== undefined) {
+          optionsMsg[externalOptions[i]] = options[externalOptions[i]];
+        }
+      }
+      return optionsMsg;
+    },
+    Set: function (id, value) {
       setOption(id, value);
     }
   };

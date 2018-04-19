@@ -1,32 +1,37 @@
 (function() {
   var profile = {
-    lupi:            null,
-    level:           1,
-    levelPercent:    null,
-    levelNextExp:    null,
-    job:             null,
-    jobPercent:      null,
-    jobNextExp:      null,
-    jobPoints:       null,
-    zenith:          null,
-    zenithPercent:   null,
-    zenithNextExp:   null,
-    renown:          null,
-    prestige:        null,
-    arcarumTicket:   null,
-    arcapoints:      null,
-    casinoChips:     null,
-    weaponNumber:    null,
-    weaponMax:       null,
-    summonNumber:    null,
-    summonMax:       null,
-    characterNumber: null,
-    drops:           null,
-    crystal:         null,
-    defenseBadges:   null,
-    defenseRank:     null,
-    sparks:          null,
+    lupi:             null,
+    level:            1,
+    levelPercent:     null,
+    levelNextExp:     null,
+    job:              null,
+    jobPercent:       null,
+    jobNextExp:       null,
+    jobPoints:        null,
+    zenith:           null,
+    zenithPercent:    null,
+    zenithNextExp:    null,
+    renown:           null,
+    prestige:         null,
+    arcarumTicket:    null,
+    arcarumTicketMax: 7,
+    arcapoints:       null,
+    casinoChips:      null,
+    weaponNumber:     null,
+    weaponMax:        null,
+    summonNumber:     null,
+    summonMax:        null,
+    characterNumber:  null,
+    drops:            null,
+    crystal:          null,
+    defenseBadges:    null,
+    defenseRank:      null,
+    sparks:           null,
   };
+
+  var renownMax       = 20000;
+  var prestigeMax     = 5000;
+  var arcapointsMax   = 50000;
 
   var responseList    = {};
   var restoreIDs      = ['1','2','3','5'];
@@ -306,7 +311,7 @@
     SpendCrystals: function(json) {
     },
 
-    SetHomeProfile: function(rank, rankPercent, job, jobPercent, lupi, jobPoints, crystal, renown, prestige, arcarumTicket, arcapoints) {
+    SetHomeProfile: function (rank, rankPercent, job, jobPercent, lupi, jobPoints, crystal, renown, prestige, arcarumTicket, arcapoints) {
       var tuples = {};
 
       tuples['level'] = rank;
@@ -328,14 +333,9 @@
       tuples['crystal'] = parseInt(crystal);
       tuples['renown'] = parseInt(renown);
       tuples['prestige'] = parseInt(prestige);
-
-      if (arcarumTicket !== undefined) {
-        tuples['arcarumTicket'] = parseInt(arcarumTicket.substring(0, arcarumTicket.indexOf('/')));
-      }
-
-      if (arcapoints !== undefined) {
-        tuples['arcapoints'] = parseInt(arcapoints.substring(0, arcapoints.indexOf('/')));
-      }
+      tuples['arcarumTicket'] = parseInt(arcarumTicket.substring(0, arcarumTicket.indexOf('/')));
+      tuples['arcarumTicketMax'] = parseInt(arcarumTicket.substring(arcarumTicket.indexOf('/') + 1, arcarumTicket.length));
+      tuples['arcapoints'] = parseInt(arcapoints.substring(0, arcapoints.indexOf('/')));
 
       for (var key in tuples) {
         if (tuples.hasOwnProperty(key)) {
@@ -350,6 +350,10 @@
 
     AddLupi: function(amt) {
       setProfile({'lupi': profile['lupi'] + parseInt(amt)});
+    },
+
+    AddArcapoints: function(amt) {
+      setProfile({ 'arcapoints': profile['arcapoints'] + parseInt(amt) });
     },
 
     CheckWeaponSummon: function(json) {
@@ -367,14 +371,31 @@
       var list   = json.rewards.reward_list;
       for (var property in list) {
         if (list.hasOwnProperty(property)) {
-          for (var i = 0; i < list[property].length; i++) {
-            item = list[property][i];
-            var category = getCategory(item.item_kind);
-            if (category !== undefined) {
-              if (tuples[category] === undefined) {
-                tuples[category] = profile[category] + 1;
-              } else {
-                tuples[category]++;
+          if (list[property].length) {
+            // old reward data json structure
+            for (var i = 0; i < list[property].length; i++) {
+              item = list[property][i];
+              var category = getCategory(item.item_kind);
+              if (category !== undefined) {
+                if (tuples[category] === undefined) {
+                  tuples[category] = profile[category] + 1;
+                } else {
+                  tuples[category]++;
+                }
+              }
+            }
+          } else {
+            for (var key in list[property]) {
+              if (list[property].hasOwnProperty(key)) {
+                item = list[property][key];
+                var category = getCategory(item.item_kind);
+                if (category !== undefined) {
+                  if (tuples[category] === undefined) {
+                    tuples[category] = profile[category] + parseInt(item.count);
+                  } else {
+                    tuples[category] += parseInt(item.count);
+                  }
+                }
               }
             }
           }
@@ -501,13 +522,29 @@
     },
 
     PurchaseItem: function(json) {
-      var dir = json.article.article1;
-      if (dir.master !== undefined) {
-        var amt = parseInt(dir.has_number) - parseInt(json.article.article1_number) * json.purchase_number;
+      var dir;
+      var amt;
+      if (json.article.article1 || json.article.article1.master) {
+        dir = json.article.article1;
+        amt = parseInt(dir.has_number) - parseInt(json.article.article1_number) * json.purchase_number;
         if (dir.master.id === '92001') {
           setProfile({'renown': amt});
         } else if (dir.master.id === '92002') {
           setProfile({'prestige': amt});
+        }
+      } else if (json.article) {
+        dir = json.article;
+        // arcarum shop
+        if (dir.has_point) {
+          // arcarum max ticket id = 3001 (json.article.id)
+          amt = parseInt(dir.has_point) - parseInt(dir.point) * json.purchase_number;
+          setProfile({ 'arcapoints': amt });
+
+          // arcarum max ticket
+          var id = '' + dir.id;
+          if (id === '3001' && json.purchase_number > 0) {
+            setProfile({ 'arcarumTicketMax': profile['arcarumTicketMax'] + json.purchase_number });
+          }
         }
       }
     },
@@ -525,39 +562,41 @@
       }
     },
 
-    StartArcarumStage: function(json) {
+    ProcessArcarumStage: function(json) {
       var tuples = {};
-      if (json.passport_num !== undefined) {
+      if (json.passport_num) {
         tuples['arcarumTicket'] = parseInt(json.passport_num);
       }
-      if (json.point !== undefined) {
+      if (json.point) {
         tuples['arcapoints'] = parseInt(json.point);
       }
       setProfile(tuples);
-    },
+    }
   };
 
   getCategory = function(item_kind) {
-    if (item_kind === '1') {
-      return 'weaponNumber';
-    } else if (item_kind === '2') {
-      return 'summonNumber';
-    } else if (item_kind === '3') {
-      return 'characterNumber';
-    } else if (item_kind === '7') {
-      return 'lupi';
-    } else if (item_kind === '9') {
-      return 'crystal';
-    } else if (item_kind === '19') {
-      return 'jobPoints';
-    } else if (item_kind === '31') {
-      return 'casinoChips';
-    } else if (item_kind === '40') {
-      return 'zenith';
-    } else if (item_kind === '59') {
-      return 'defenseBadges';
-    } else {
-      return undefined;
+    switch (item_kind) {
+      case '1':
+        return 'weaponNumber';
+      case '2':
+        return 'summonNumber';
+      case '3':
+        return 'characterNumber';
+      case '7':
+        return 'lupi';
+      case '9':
+        return 'crystal';
+      case '19':
+        return 'jobPoints';
+      case '31':
+        return 'casinoChips';
+      case '40':
+        return 'zenith';
+      case '59':
+        return 'defenseBadges';
+      default:
+        console.log("unknown item_kind: '" + item_kind + "'");
+        return undefined;
     }
   };
 
@@ -578,6 +617,22 @@
       } else if (category === 'summonNumber') {
         if (value > profile['summonMax']) {
           value = profile['summonMax'];
+        }
+      } else if (category === 'renown') {
+        if (value > renownMax) {
+          value = renownMax;
+        }
+      } else if (category === 'prestige') {
+        if (value > prestigeMax) {
+          value = prestigeMax;
+        }
+      } else if (category === 'arcapoints') {
+        if (value > arcapointsMax) {
+          value = arcapointsMax;
+        }
+      } else if (category === 'arcarumTicket') {
+        if (value > profile['arcarumTicketMax']) {
+          value = profile['arcarumTicketMax'];
         }
       }
 
@@ -623,7 +678,7 @@
     } else {
       value = profile[category];
     }
-    if (value === null || value === undefined) {
+    if (value === undefined || value === null) {
       value = '???';
     }
     if (category === 'zenithNextExp') {
@@ -633,6 +688,9 @@
       category = 'jobNextExp';
     } else if ( category === 'zenithPercent') {
       category = 'jobPercent';
+    }
+    if (category === 'arcarumTicket') {
+      value += '/' + profile['arcarumTicketMax'];
     }
     value = numberWithCommas(value);
     if (category === 'level') {

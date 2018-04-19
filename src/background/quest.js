@@ -38,6 +38,8 @@
     '301381' : null,
     '300441' : null,
     '300451' : null,
+    '303051' : null,
+    '303181' : null,
 
     '300061' : null,
     '300071' : null,
@@ -48,6 +50,8 @@
     '301071' : null,
     '300491' : null,
     '300501' : null,
+    '302751' : null,
+    '303151' : null,
 
     '300111' : null,
     '300121' : null,
@@ -58,6 +62,8 @@
     '300481' : null,
     '300511' : null,
     '300521' : null,
+    '303041' : null,
+    '303161' : null,
 
     '300171' : null,
     '300181' : null,
@@ -67,6 +73,8 @@
     '301371' : null,
     '300531' : null,
     '300541' : null,
+    '302711' : null,
+    '303171' : null,
 
     '300201' : null,
     '300211' : null,
@@ -76,6 +84,8 @@
     '300461' : null,
     '300561' : null,
     '300571' : null,
+    '303061' : null,
+    '303191' : null,
 
     '300231' : null,
     '300241' : null,
@@ -85,11 +95,15 @@
     '300551' : null,
     '300581' : null,
     '300591' : null,
+    '303071' : null,
+    '303221' : null,
 
     '300291' : null,
     '301051' : null,
+    '303131' : null,
     '300471' : null,
     '301061' : null,
+    '303141' : null,
   };
 
   var createRaid = function(sequence, sequence2, name, max, magDelta, url, animeIDs, animeCounts, animeTypes, isHL) {
@@ -109,13 +123,13 @@
   };
 
   var raidList = [
-    '300011', '300021', '300031', '300041', '300051', '300421', '301381', '300441', '300451',
-    '300061', '300071', '300081', '300091', '300101', '300411', '301071', '300491', '300501',
-    '300111', '300121', '300141', '300151', '300161', '300381', '300481', '300511', '300521',
-    '300171', '300181', '300191', '300261', '300391', '301371', '300531', '300541',
-    '300201', '300211', '300221', '300271', '300431', '300461', '300561', '300571',
-    '300231', '300241', '300251', '300281', '300401', '300551', '300581', '300591',
-    '300291', '301051', '300471', '301061'
+    '300011', '300021', '300031', '300041', '300051', '300421', '301381', '300441', '300451', '303051', '303181',
+    '300061', '300071', '300081', '300091', '300101', '300411', '301071', '300491', '300501', '302751', '303151',
+    '300111', '300121', '300141', '300151', '300161', '300381', '300481', '300511', '300521', '303041', '303161',
+    '300171', '300181', '300191', '300261', '300391', '301371', '300531', '300541', '302711', '303171',
+    '300201', '300211', '300221', '300271', '300431', '300461', '300561', '300571', '303061', '303191',
+    '300231', '300241', '300251', '300281', '300401', '300551', '300581', '300591', '303071', '303221',
+    '300291', '301051', '303131', '300471', '301061', '303141'
   ];
 
   var currRaidList      = [];
@@ -130,60 +144,74 @@
     '300051' : createRaid(5, 22, 'Tiamat (EX)', 3, 2, '2040020000_ex.jpg', ['18'], [2], ['raid'], false),
     '300421' : createRaid(6, 28, 'Nezha (EX)', 2, 0, '2040042000_ex.jpg', ['1343', '1141'], [50, 6], ['material', 'material'], false),
     '301381' : createRaid(7, 34, 'Garuda (EX)', 2, 0, '2040071000_ex.jpg', ['1343', '1141'], [50, 6], ['material', 'material'], false),
-    '300441' : createRaid(8, 42, 'Tiamat (HL)', 2, 0, '2040020000_high.jpg', ['32'], [3], ['raid'], true),
-    '300451' : createRaid(9, 49, 'Nezha (HL)', 1, 0, '2040042000_high.jpg', ['44'], [1], ['raid'], true),
+    '300441' : createRaid(8, 43, 'Tiamat (HL)', 2, 0, '2040020000_high.jpg', ['32'], [3], ['raid'], true),
+    '300451' : createRaid(9, 50, 'Nezha (HL)', 1, 0, '2040042000_high.jpg', ['44'], [1], ['raid'], true),
+    '303051' : createRaid(10, 56, 'Morrigna (HL)', 1, 0, '303051_high.png', ['44'], [1], ['raid'], true),
+    '303181' : createRaid(11, 62, 'Grimnir (HL)', 1, 0, '303181_high.png', ['525'], [1], ['raid'], true),
 
-    '300061' : createRaid(10, 2, 'Flame (N)', 3, 2, '2020018001.jpg', null, null, null, false),
-    '300071' : createRaid(11, 5, 'Flame (H)', 3, 2, '2020018001_hard.jpg', null, null, null, false),
-    '300081' : createRaid(12, 11, 'Colossus (N)', 3, 2, '2030001000.jpg', null, null, null, false),
-    '300091' : createRaid(13, 17, 'Colossus (H)', 3, 2, '2030001000_hard.jpg', null, null, null, false),
+    '300061' : createRaid(12, 2, 'Flame (N)', 3, 2, '2020018001.jpg', null, null, null, false),
+    '300071' : createRaid(13, 5, 'Flame (H)', 3, 2, '2020018001_hard.jpg', null, null, null, false),
+    '300081' : createRaid(14, 11, 'Colossus (N)', 3, 2, '2030001000.jpg', null, null, null, false),
+    '300091' : createRaid(15, 17, 'Colossus (H)', 3, 2, '2030001000_hard.jpg', null, null, null, false),
     '300101' : createRaid(16, 25, 'Colossus (EX)', 3, 2, '2040034000_ex.jpg', ['19'], [2], ['raid'], false),
-    '300411' : createRaid(14, 29, 'Elements (EX)', 2, 0, '2040063000_ex.jpg', ['1313', '1111'], [50, 6], ['material', 'material'], false),
-    '301071' : createRaid(15, 35, 'Athena (EX)', 2, 0, '2040021000_ex.jpg', ['1313', '1111'], [50, 6], ['material', 'material'], false),
-    '300491' : createRaid(17, 43, 'Colossus (HL)', 2, 0, '2040034000_high.jpg', ['47'], [3], ['raid'], true),
-    '300501' : createRaid(18, 50, 'Elements (HL)', 1, 0, '2040063000_high.jpg', ['41'], [1], ['raid'], true),
+    '300411' : createRaid(17, 29, 'Elements (EX)', 2, 0, '2040063000_ex.jpg', ['1313', '1111'], [50, 6], ['material', 'material'], false),
+    '301071' : createRaid(18, 35, 'Athena (EX)', 2, 0, '2040021000_ex.jpg', ['1313', '1111'], [50, 6], ['material', 'material'], false),
+    '300491' : createRaid(19, 44, 'Colossus (HL)', 2, 0, '2040034000_high.jpg', ['47'], [3], ['raid'], true),
+    '300501' : createRaid(20, 51, 'Elements (HL)', 1, 0, '2040063000_high.jpg', ['41'], [1], ['raid'], true),
+    '302751' : createRaid(21, 57, 'Prom (HL)', 1, 0, '302751_high.png', ['41'], [1], ['raid'], true),
+    '303151' : createRaid(22, 63, 'Shiva (HL)', 1, 0, '303151_high.png', ['522'], [1], ['raid'], true),
 
-    '300111' : createRaid(19, 3, 'Guard (N)', 3, 2, '2030013001.jpg', null, null, null, false),
-    '300121' : createRaid(20, 6, 'Guard (H)', 3, 2, '2030013001_hard.jpg', null, null, null, false),
-    '300141' : createRaid(21, 12, 'Leviathan (N)', 3, 2, '2030011000.jpg', null, null, null, false),
-    '300151' : createRaid(22, 18, 'Leviathan (H)', 3, 2, '2030011000_hard.jpg', null, null, false),
-    '300161' : createRaid(23, 23, 'Leviathan (EX)', 3, 2, '2040028000_ex.jpg', ['20'], [2], ['raid'], false),
-    '300381' : createRaid(24, 30, 'Macula (EX)', 2, 0, '2040002000_ex.jpg', ['1323', '1121'], [50, 6], ['material', 'material'], false),
-    '300481' : createRaid(25, 36, 'Grani (EX)', 2, 0, '2040007000_ex.jpg', ['1323', '1121'], [50, 6], ['material', 'material'], false),
-    '300511' : createRaid(26, 44, 'Leviathan (HL)', 2, 0, '2040028000_high.jpg', ['48'], [3], ['raid'], true),
-    '300521' : createRaid(27, 51, 'Macula (HL)', 1, 0, '2040002000_high.jpg', ['42'], [1], ['raid'], true),
+    '300111' : createRaid(23, 3, 'Guard (N)', 3, 2, '2030013001.jpg', null, null, null, false),
+    '300121' : createRaid(24, 6, 'Guard (H)', 3, 2, '2030013001_hard.jpg', null, null, null, false),
+    '300141' : createRaid(25, 12, 'Leviathan (N)', 3, 2, '2030011000.jpg', null, null, null, false),
+    '300151' : createRaid(26, 18, 'Leviathan (H)', 3, 2, '2030011000_hard.jpg', null, null, false),
+    '300161' : createRaid(27, 23, 'Leviathan (EX)', 3, 2, '2040028000_ex.jpg', ['20'], [2], ['raid'], false),
+    '300381' : createRaid(28, 30, 'Macula (EX)', 2, 0, '2040002000_ex.jpg', ['1323', '1121'], [50, 6], ['material', 'material'], false),
+    '300481' : createRaid(29, 36, 'Grani (EX)', 2, 0, '2040007000_ex.jpg', ['1323', '1121'], [50, 6], ['material', 'material'], false),
+    '300511' : createRaid(30, 45, 'Leviathan (HL)', 2, 0, '2040028000_high.jpg', ['48'], [3], ['raid'], true),
+    '300521' : createRaid(31, 52, 'Macula (HL)', 1, 0, '2040002000_high.jpg', ['42'], [1], ['raid'], true),
+    '303041' : createRaid(32, 58, 'Ca Ong (HL)', 1, 0, '303041_high.png', ['42'], [1], ['raid'], true),
+    '303161' : createRaid(33, 64, 'Europa (HL)', 1, 0, '303161_high.png', ['523'], [1], ['raid'], true),
 
-    '300171' : createRaid(28, 7, 'Dragon (H)', 3, 2, '2030004000_hard.jpg', null, null, null, false),
-    '300181' : createRaid(29, 13, 'Yggdrasil (N)', 3, 2, '2030015000.jpg', null, null, null, false),
-    '300191' : createRaid(30, 19, 'Yggdrasil (H)', 3, 2, '2030015000_hard.jpg', null, null, null, false),
-    '300261' : createRaid(31, 24, 'Yggdrasil (EX)', 3, 2, '2040027000_ex.jpg', ['21'], [2], ['raid'], false),
-    '300391' : createRaid(32, 31, 'Medusa (EX)', 2, 0, '2040059000_ex.jpg', ['1333', '1131'], [50, 6], ['material', 'material'], false),
-    '301371' : createRaid(33, 37, 'Baal (EX)', 2, 0, '2040013000_ex.jpg', ['1333', '1131'], [50, 6], ['material', 'material'], false),
-    '300531' : createRaid(34, 45, 'Yggdrasil (HL)', 2, 0, '2040027000_high.jpg', ['49'], [3], ['raid'], true),
-    '300541' : createRaid(35, 52, 'Medusa (HL)', 1, 0, '2040059000_high.jpg', ['43'], [1], ['raid'], true),
+    '300171' : createRaid(34, 7, 'Dragon (H)', 3, 2, '2030004000_hard.jpg', null, null, null, false),
+    '300181' : createRaid(35, 13, 'Yggdrasil (N)', 3, 2, '2030015000.jpg', null, null, null, false),
+    '300191' : createRaid(36, 19, 'Yggdrasil (H)', 3, 2, '2030015000_hard.jpg', null, null, null, false),
+    '300261' : createRaid(37, 24, 'Yggdrasil (EX)', 3, 2, '2040027000_ex.jpg', ['21'], [2], ['raid'], false),
+    '300391' : createRaid(38, 31, 'Medusa (EX)', 2, 0, '2040059000_ex.jpg', ['1333', '1131'], [50, 6], ['material', 'material'], false),
+    '301371' : createRaid(39, 37, 'Baal (EX)', 2, 0, '2040013000_ex.jpg', ['1333', '1131'], [50, 6], ['material', 'material'], false),
+    '300531' : createRaid(40, 46, 'Yggdrasil (HL)', 2, 0, '2040027000_high.jpg', ['49'], [3], ['raid'], true),
+    '300541' : createRaid(41, 53, 'Medusa (HL)', 1, 0, '2040059000_high.jpg', ['43'], [1], ['raid'], true),
+    '302711' : createRaid(42, 59, 'Gilga (HL)', 1, 0, '302711_high.png', ['43'], [1], ['raid'], true),
+    '303171' : createRaid(43, 65, 'Alexiel (HL)', 1, 0, '303171_high.png', ['524'], [1], ['raid'], true),
 
-    '300201' : createRaid(36, 8, 'Wisp (H)', 3, 2, '2030027000_hard.jpg', null, null, null, false),
-    '300211' : createRaid(37, 14, 'Adversa (N)', 3, 2, '2030035000.jpg', null, null, null, false),
-    '300221' : createRaid(38, 20, 'Adversa (H)', 3, 2, '2030035000_hard.jpg', null, null, null, false),
-    '300271' : createRaid(39, 26, 'Luminiera (EX)', 3, 2, '2040047000_ex.jpg', ['26'], [2], ['raid'], false),
-    '300431' : createRaid(40, 32, 'Apollo (EX)', 2, 0, '2040023000_ex.jpg', ['1353', '1151'], [50, 6], ['material', 'material'], false),
-    '300461' : createRaid(41, 38, 'Odin (EX)', 2, 0, '2040029000_ex.jpg', ['1353', '1151'], [50, 6], ['material', 'material'], false),
-    '300561' : createRaid(42, 46, 'Luminiera (HL)', 2, 0, '2040047000_high.jpg', ['50'], [3], ['raid'], true),
-    '300571' : createRaid(43, 53, 'Apollo (HL)', 1, 0, '2040023000_high.jpg', ['45'], [1], ['raid'], true),
+    '300201' : createRaid(44, 8, 'Wisp (H)', 3, 2, '2030027000_hard.jpg', null, null, null, false),
+    '300211' : createRaid(45, 14, 'Adversa (N)', 3, 2, '2030035000.jpg', null, null, null, false),
+    '300221' : createRaid(46, 20, 'Adversa (H)', 3, 2, '2030035000_hard.jpg', null, null, null, false),
+    '300271' : createRaid(47, 26, 'Luminiera (EX)', 3, 2, '2040047000_ex.jpg', ['26'], [2], ['raid'], false),
+    '300431' : createRaid(48, 32, 'Apollo (EX)', 2, 0, '2040023000_ex.jpg', ['1353', '1151'], [50, 6], ['material', 'material'], false),
+    '300461' : createRaid(49, 38, 'Odin (EX)', 2, 0, '2040029000_ex.jpg', ['1353', '1151'], [50, 6], ['material', 'material'], false),
+    '300561' : createRaid(50, 47, 'Luminiera (HL)', 2, 0, '2040047000_high.jpg', ['50'], [3], ['raid'], true),
+    '300571' : createRaid(51, 54, 'Apollo (HL)', 1, 0, '2040023000_high.jpg', ['45'], [1], ['raid'], true),
+    '303061' : createRaid(52, 60, 'Hector (HL)', 1, 0, '303061_high.png', ['45'], [1], ['raid'], true),
+    '303191' : createRaid(53, 66, 'Metatron (HL)', 1, 0, '303191_high.png', ['526'], [1], ['raid'], true),
 
-    '300231' : createRaid(44, 9, 'Eye (H)', 3, 2, '2030038000_hard.jpg', null, null, null, false),
-    '300241' : createRaid(45, 15, 'Celeste (N)', 3, 2, '2030041000.jpg', null, null, null, false),
-    '300251' : createRaid(46, 21, 'Celeste (H)', 3, 2, '2030041000_hard.jpg', null, null, null, false),
-    '300281' : createRaid(47, 27, 'Celeste (EX)', 3, 2, '2040046000_ex.jpg', ['31'], [2], ['raid'], false),
-    '300401' : createRaid(48, 33, 'Olivia (EX)', 2, 0, '2040005000_ex.jpg', ['1363', '1161'], [50, 6], ['material', 'material'], false),
-    '300551' : createRaid(49, 39, 'Lich (EX)', 2, 0, '2040012000_ex.jpg', ['1363', '1161'], [50, 6], ['material', 'material'], false),
-    '300581' : createRaid(50, 47, 'Celeste (HL)', 2, 0, '2040046000_high.jpg', ['51'], [3], ['raid'], true),
-    '300591' : createRaid(51, 54, 'Olivia (HL)', 1, 0, '2040005000_high.jpg', ['46'], [1], ['raid'], true),
-
-    '300291' : createRaid(52, 40, 'Bahamut (EX)', 3, 0, '2030002000_hell.jpg', ['58'], [1], ['raid'], false),
-    '301051' : createRaid(53, 41, 'Grand (EX)', 2, 0, '2040065000_hell.jpg', ['82'], [1], ['raid'], false),
-    '300471' : createRaid(54, 48, 'Rose (HL)', 1, 0, '2040105000_high.jpg', ['1204'], [10], ['material'], true),
-    '301061' : createRaid(55, 55, 'Bahamut (HL)', 1, 0, '2040128000_hell.jpg', ['59'], [1], ['raid'], true),
+    '300231' : createRaid(54, 9, 'Eye (H)', 3, 2, '2030038000_hard.jpg', null, null, null, false),
+    '300241' : createRaid(55, 15, 'Celeste (N)', 3, 2, '2030041000.jpg', null, null, null, false),
+    '300251' : createRaid(56, 21, 'Celeste (H)', 3, 2, '2030041000_hard.jpg', null, null, null, false),
+    '300281' : createRaid(57, 27, 'Celeste (EX)', 3, 2, '2040046000_ex.jpg', ['31'], [2], ['raid'], false),
+    '300401' : createRaid(58, 33, 'Olivia (EX)', 2, 0, '2040005000_ex.jpg', ['1363', '1161'], [50, 6], ['material', 'material'], false),
+    '300551' : createRaid(59, 39, 'Lich (EX)', 2, 0, '2040012000_ex.jpg', ['1363', '1161'], [50, 6], ['material', 'material'], false),
+    '300581' : createRaid(60, 48, 'Celeste (HL)', 2, 0, '2040046000_high.jpg', ['51'], [3], ['raid'], true),
+    '300591' : createRaid(61, 55, 'Olivia (HL)', 1, 0, '2040005000_high.jpg', ['46'], [1], ['raid'], true),
+    '303071' : createRaid(62, 61, 'Anubis (HL)', 1, 0, '303071_high.png', ['46'], [1], ['raid'], true),
+    '303221' : createRaid(63, 67, 'Avatar (HL)', 1, 0, '303221_high.png', ['527'], [1], ['raid'], true),
+    
+    '300291' : createRaid(64, 40, 'Bahamut (EX)', 3, 0, '2030002000_hell.jpg', ['58'], [1], ['raid'], false),
+    '301051' : createRaid(65, 41, 'Grand (EX)', 2, 0, '2040065000_hell.jpg', ['82'], [1], ['raid'], false),
+    '303131' : createRaid(66, 42, 'Ulti Baha (EX)', 1, 0, '303131_hell.png', ['133'], [1], ['raid'], true),
+    '300471' : createRaid(67, 49, 'Rose (HL)', 1, 0, '2040105000_high.jpg', ['1204'], [10], ['material'], true),
+    '301061' : createRaid(68, 68, 'Bahamut (HL)', 1, 0, '2040128000_hell.jpg', ['59'], [1], ['raid'], true),
+    '303141' : createRaid(69, 69, 'Ulti Baha (HL)', 1, 0, '303141_hell.png', ['136'], [1], ['raid'], true)
   };
 
   var tweetHash = {
@@ -248,6 +276,8 @@
     'Lvl 100 Grand Order': 'Lv100 ジ・オーダー・グランデ',
     'Lvl 110 Rose Queen': 'Lv110 ローズクイーン',
     'Lvl 150 Proto Bahamut': 'Lv150 プロトバハムート',
+    'Lvl 150 Ultimate Bahamut': 'Lv150 アルティメットバハムート',
+    'Lvl 200 Ultimate Bahamut': 'Lv200 アルティメットバハムート',
 
     'Lvl 120 Morrigna': 'Lv120 バイヴカハ',
     'Lvl 120 Prometheus': 'Lv120 プロメテウス',
@@ -255,6 +285,13 @@
     'Lvl 120 Gilgamesh': 'Lv120 ギルガメッシュ',
     'Lvl 120 Hector': 'Lv120 ヘクトル',
     'Lvl 120 Anubis': 'Lv120 アヌビス',
+
+    'Lvl 120 Grimnir': 'Lv120 グリームニル',
+    'Lvl 120 Shiva': 'Lv120 シヴァ',
+    'Lvl 120 Europa': 'Lv120 エウロペ',
+    'Lvl 120 Godsworn Alexiel': 'Lv120 ゴッドガード・ブローディア',
+    'Lvl 120 Metatron': 'Lv120 メタトロン',
+    'Lvl 120 Avatar': 'Lv120 アバター',
 
     'Lvl 60 Zhuque': 'Lv60 朱雀',
     'Lvl 60 Xuanwu': 'Lv60 玄武',
@@ -431,8 +468,8 @@
       Storage.GetMultiple(['quests'], function(response) {
         if (response['quests'] !== undefined) {
           var modified = false;
-          if (response['quests']['301061'] == undefined) {
-            for (var key in remainingQuests) {
+          for (var key in remainingQuests) {
+            if (response['quests'][key] === undefined) {
               if (response['quests'][key] == undefined) {
                 if (!Options.Get('isMagFest')) {
                   response['quests'][key] = raidInfo[key].max;
@@ -440,8 +477,8 @@
                   response['quests'][key] = raidInfo[key].max + raidInfo[key].magDelta;
                 }
               }
+              modified = true;
             }
-            modified = true;
           }
 
           for (var i = 0; i < raidList.length; i++) {
@@ -858,7 +895,7 @@
       }
       if (refresh) {
         if (Options.Get('fasterRefresh')) {
-          chrome.tabs.executeScript(devID, { "code": "history.go(-1);setTimeout(function() {history.go(1);}, 100);" });
+          chrome.tabs.sendMessage(devID, { 'fastRefresh': true });
         } else {
           Message.Post(devID, { 'openURL': currQuest.url + currQuest.id });
         }

@@ -348,7 +348,6 @@
           })
         )
       );
-      console.log(message.bookmarkURL);
       return;
     }
     if (message.setText) {
@@ -549,6 +548,7 @@
   };
   var addItem = function(id, category, number, name, sequence, tooltip) {
     var newItem = $supplyItem.clone();
+    var itemExists = true;
     newItem.attr('id', 'supply-' + sequence + '-' + id);
     if (category === 'recovery' || category === 'draw' || category === 'powerUp') {
       newItem.data('category', 'misc');
@@ -563,17 +563,24 @@
     newItem.data('name', name.toLowerCase());
     var imgURL;
     if (category === 'recovery') {
-      imgURL = 'http://gbf.game-a.mbga.jp/assets_en/img/sp/assets/item/normal/s/';
+      imgURL = 'http://game-a.granbluefantasy.jp/assets_en/img/sp/assets/item/normal/s/';
     } else if (category === 'powerUp') {
-      imgURL = 'http://gbf.game-a.mbga.jp/assets_en/img/sp/assets/item/evolution/s/';
+      imgURL = 'http://game-a.granbluefantasy.jp/assets_en/img/sp/assets/item/evolution/s/';
+    } else if (category === 'skillPlus') {
+      imgURL = 'http://game-a.granbluefantasy.jp/assets_en/img/sp/assets/item/skillplus/s/';
+    } else if (category === 'npcAugment') {
+      imgURL = 'http://game-a.granbluefantasy.jp/assets_en/img/sp/assets/item/npcaugment/s/';
     } else if (category === 'draw') {
-      imgURL = 'http://gbf.game-a.mbga.jp/assets_en/img/sp/assets/item/ticket/';
+      imgURL = 'http://game-a.granbluefantasy.jp/assets_en/img/sp/assets/item/ticket/';
     } else {
-      imgURL = 'http://gbf.game-a.mbga.jp/assets_en/img/sp/assets/item/article/s/';
+      imgURL = 'http://game-a.granbluefantasy.jp/assets_en/img/sp/assets/item/article/s/';
     }
 
     imgURL += id + '.jpg';
     newItem.children('.item-img').first().attr('src', imgURL);
+    newItem.children('.item-img').on('error', function () {
+      Message.Post({ 'removeItem': $(this).attr('src') });
+    });
     newItem.children('.item-count').first().text(number);
     newItem.children('.item-count').first().attr('id', 'supply-' + sequence + '-' + id + '-count');
     var tooltipText;
