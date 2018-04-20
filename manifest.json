@@ -3,7 +3,7 @@
 
   "name": "Lyria",
   "description": "Granblue Fantasy Companion Extension.",
-  "version": "1.2.3",
+  "version": "1.2.4",
 
   "icons": {
     "16": "src/assets/images/icon16.png",

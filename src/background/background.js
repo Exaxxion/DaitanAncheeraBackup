@@ -3,7 +3,7 @@
   var currURL    = '';
   var pageLoaded = true;
 
-  var CURRENT_VERSION = '1.2.3';
+  var CURRENT_VERSION = '1.2.4';
   var BASE_VERSION    = '1.0.1';
   var patchNotes = {
     '1.0.1': {
@@ -91,6 +91,10 @@
         'You MUST turn on the option',
         '\'Synchronize status between raid windows\'',
         'under Combat settings or this will NOT work']
+    },
+    '1.2.4': {
+      'index': 11,
+      'notes': ['-Other windows should now resync on refresh']
     }
   };
   var patchNoteList = [
@@ -104,7 +108,8 @@
     '1.2.0',
     '1.2.1',
     '1.2.2',
-    '1.2.3'
+    '1.2.3',
+    '1.2.4'
   ];
   var currentVersion = undefined;
 

@@ -786,7 +786,15 @@
       }
       var id = '' + json.raid_id;
       var quest_id = '' + json.quest_id;
+      var turn = null;
+      var enemies = null;
+      var characters = null;
+      var formation = null;
+      var syncTurns = Options.Get('syncAll') || Options.Get('syncTurns');
+      var syncBossHP = Options.Get('syncAll') || Options.Get('syncBossHP');
+      var syncAbilities = Options.Get('syncAll') || Options.Get('syncAbilities');
       var currQuest;
+
       if (json.twitter !== undefined && json.twitter.battle_id !== undefined) {
         Message.Post(devID, {'setClick': {
           'id': '#quest-copy',
@@ -894,22 +902,38 @@
           }
         }
       }
-      if (Options.Get('syncAll')) {
-        chrome.tabs.sendMessage(devID, {
-          'syncClient': {
-            'type': 'start',
-            'turn': json.turn,
-            'raid_id': currQuest.id,
-            'boss': currQuest.enemies,
-            'ignoredEnemyHPValues': null
-          }
-        });
+
+      if (syncTurns) {
+        turn = json.turn;
+      }
+      if (syncBossHP) {
+        enemies = currQuest.enemies;
+      }
+      if (syncAbilities) {
+        characters = currQuest.characters;
+        formation = currQuest.formation;
+      }
+
+      if (syncTurns || syncBossHP || syncAbilities) {
+        for (var i = 0; i < currQuest.devIDs.length; i++) {
+          chrome.tabs.sendMessage(currQuest.devIDs[i], {
+            'syncClient': {
+              'type': 'start',
+              'turn': turn,
+              'raid_id': currQuest.id,
+              'boss': enemies,
+              'ignoredEnemyHPValues': null,
+              'characters': currQuest,
+              'formation': formation
+            }
+          });
+        }
       }
       setQuestsJQuery(id);
     },
 
     BattleAction: function(json, payload, devID) {
-      if (json.popup !== undefined) {
+      if (json === undefined || json === null || json.popup !== undefined) {
         return;
       }
 
@@ -1195,16 +1219,27 @@
 
     AbandonQuest: function(payload) {
       var id = '' + payload.raid_id;
-      if (quests[id] !== null && quests[id].id === id) {
-        delete quests[id];
-      } else {
+      var deleted = false;
+
+      for (var i in quests) {
+        if (!quests.hasOwnProperty(i)) continue;
+        if (quests[i] !== undefined && quests[i] !== null && quests[i].id === id) {
+          delete quests[i];
+          deleted = true;
+          break;
+        }
+      }
+
+      if (!deleted) {
         for (var i = 0; i < raids.length; i++) {
           if (raids[i].id === id) {
             raids.splice(i, 1);
+            deleted = true;
             break;
           }
         }
       }
+
       setQuestsJQuery(id);
     },
 
