@@ -30,7 +30,8 @@
     options = {
       syncAll: false,
       syncTurns: false,
-      syncBossHP: false
+      syncBossHP: false,
+      syncAbilities: false
     },
     port = null,
     pendingMsgs = [],

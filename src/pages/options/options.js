@@ -124,6 +124,7 @@ var options = [
   'syncAll',
   'syncTurns',
   'syncBossHP',
+  'syncAbilities',
   'enableNotifications',
   'muteNotifications',
   'apNotifications',

@@ -13,7 +13,8 @@
     options = {
       syncAll: false,
       syncTurns: false,
-      syncBossHP: false
+      syncBossHP: false,
+      syncAbilities: false
     },
     shadowScript = null,
     externalChannel = null,
@@ -66,6 +67,9 @@
         externalChannel.port1.postMessage(pendingExternalMsgs[i]);
       }
       pendingExternalMsgs = [];
+    }
+    if (message.updateRaidID) {
+      gameState.raid_id = message.updateRaidID.id;
     }
     if (message.consoleLog) {
       consoleLog("external", message.consoleLog.msg);
@@ -146,25 +150,29 @@
       });
     }
 
-    if (message.updateTurnCounter) {
-      if (options.syncAll || options.syncTurns || options.syncBossHP) {
-        if (message.updateTurnCounter.type === "start") {
-          gameState.raid_id = message.updateTurnCounter.raid_id;
+    if (message.syncClient) {
+      if (options.syncAll || options.syncTurns || options.syncBossHP || options.syncAbilities) {
+        if (message.syncClient.type === "start") {
+          gameState.raid_id = message.syncClient.raid_id;
         }
-        if (message.updateTurnCounter.raid_id === gameState.raid_id) {
-          if ((options.syncAll || options.syncTurns) && message.updateTurnCounter.turn !== null) {
-            gameState.turn = message.updateTurnCounter.turn;
+        if (message.syncClient.raid_id === gameState.raid_id) {
+          if ((options.syncAll || options.syncTurns) && message.syncClient.turn !== null) {
+            gameState.turn = message.syncClient.turn;
           }
           if (options.syncAll || options.syncBossHP) {
             for (var i = 0; i < gameState.enemies.length; i++) {
-              if (message.updateTurnCounter.boss[i] !== undefined && message.updateTurnCounter.boss[i] !== null) {
-                gameState.enemies[i] = message.updateTurnCounter.boss[i];
+              if (message.syncClient.boss[i] !== undefined && message.syncClient.boss[i] !== null) {
+                gameState.enemies[i] = message.syncClient.boss[i];
               } else {
                 gameState.enemies[i] = null;
               }
             }
           }
-          updateClient(gameState, message.updateTurnCounter.ignoredEnemyHPValues, message.updateTurnCounter.type);
+          updateClient(gameState, message.syncClient.ignoredEnemyHPValues, message.syncClient.type);
+          if ((options.syncAll || options.syncAbilities) &&
+            (message.syncClient.characters !== null && message.syncClient.formation !== null)) {
+            updateAbilityCooldowns(message.syncClient.characters, message.syncClient.formation);
+          }
         }
       }
     }
@@ -259,7 +267,7 @@
     }});
   };
 
-  var updateClient = function (gs, ignoredEnemyHPValues) {
+  var updateClient = function(gs, ignoredEnemyHPValues) {
     sendExternalMessage({
       'gameState': {
         'turn': gs.turn,
@@ -267,6 +275,53 @@
         'ignoredEnemyHPValues': ignoredEnemyHPValues
       }
     });
+  };
+
+  var updateAbilityCooldowns = function (chars, formation) {
+    if (chars === undefined || chars === null || formation === undefined || formation === null) {
+      return;
+    }
+    var pos;
+    var abilities;
+    var ability;
+    var $ability;
+    var $abilityParent;
+    var $abilityShine;
+
+    for (var i = 0; i < formation.length; i++) {
+      pos = formation[i];
+      if (chars[pos] && chars[pos] !== null) {
+        abilities = chars[pos].abilities;
+        for (var j = 0; j < abilities.length; j++) {
+          ability = abilities[j];
+          if (ability && ability !== null) {
+            $ability = $('.ability-character-num-' + (i + 1) + '-' + (j + 1));
+            if ($ability.length) {
+              for (var k = 0; k < $ability.length; k++) {
+                $($ability[k]).attr('ability-recast', ability.cooldown);
+                $abilityParent = $($ability[k]).parent();
+                $abilityShine = $abilityParent.find('.ico-ability-shine');
+                if (ability.cooldown === 0) {
+                  if ($abilityParent.hasClass('btn-ability-unavailable')) {
+                    $abilityParent.removeClass('btn-ability-unavailable').addClass('btn-ability-available');
+                  }
+                  if ($abilityShine.length) {
+                    $abilityShine.css('display', 'none');
+                  }
+                } else {
+                  if ($abilityParent.hasClass('btn-ability-available')) {
+                    $abilityParent.removeClass('btn-ability-available').addClass('btn-ability-unavailable');
+                  }
+                  if ($abilityShine.length) {
+                    $abilityShine.css('display', 'block');
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   };
   
   $(document).ready(function () {

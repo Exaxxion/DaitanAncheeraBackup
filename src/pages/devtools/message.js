@@ -580,6 +580,7 @@
     newItem.children('.item-img').first().attr('src', imgURL);
     newItem.children('.item-img').on('error', function () {
       Message.Post({ 'removeItem': $(this).attr('src') });
+      $(this).remove();
     });
     newItem.children('.item-count').first().text(number);
     newItem.children('.item-count').first().attr('id', 'supply-' + sequence + '-' + id + '-count');

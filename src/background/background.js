@@ -3,7 +3,7 @@
   var currURL    = '';
   var pageLoaded = true;
 
-  var CURRENT_VERSION = '1.2.2';
+  var CURRENT_VERSION = '1.2.3';
   var BASE_VERSION    = '1.0.1';
   var patchNotes = {
     '1.0.1': {
@@ -83,6 +83,14 @@
         '-Added Arcarum weekly tracker',
         '-Faster refresh is now its on toggleable option',
         '-Arcarum drops/shop now updates info']
+    },
+    '1.2.3': {
+      'index': 10,
+      'notes': ['-Added skill cooldown sync option',
+        '!! NOTE FOR VIRAMATE USERS !!',
+        'You MUST turn on the option',
+        '\'Synchronize status between raid windows\'',
+        'under Combat settings or this will NOT work']
     }
   };
   var patchNoteList = [
@@ -95,7 +103,8 @@
     '1.1.5',
     '1.2.0',
     '1.2.1',
-    '1.2.2'
+    '1.2.2',
+    '1.2.3'
   ];
   var currentVersion = undefined;
 
@@ -575,7 +584,6 @@
         }
         if (message.request.url.indexOf('/normal_attack_result.json?_=') !== -1 || message.request.url.indexOf('/ability_result.json?_=') !== -1 || message.request.url.indexOf('/summon_result.json?_=') !== -1) {
           Quest.BattleAction(message.request.response, message.request.payload, message.id);
-          Quest.UpdateTurnCounter(message.request.response, message.request.payload, message.id);
         }
         if (message.request.url.indexOf('/rest/raid/setting?') !== -1) {
           Quest.CheckOugiToggle(message.request.payload, message.id);

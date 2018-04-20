@@ -2,7 +2,7 @@
   var options = {
     ougiRefresh:               false,
     attackRefresh:             false,
-    fasterRefresh:             true,
+    fasterRefresh:             false,
     skip:                      false,
     skipNext:                  false,
     skipCoopResults:           false,
@@ -10,6 +10,7 @@
     syncAll:                   false,
     syncTurns:                 false,
     syncBossHP:                false,
+    syncAbilities:             false,
     enableNotifications:       true,
     muteNotifications:         false,
     apNotifications:           true,
@@ -121,6 +122,7 @@
     'syncAll',
     'syncTurns',
     'syncBossHP',
+    'syncAbilities',
     'fasterRefresh'
   ];
 

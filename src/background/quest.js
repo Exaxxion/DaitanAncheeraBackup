@@ -18,14 +18,12 @@
   var currRaidID = null;
   var currCoopID = null;
 
-  //var mainCharacterImageURL = "http://gbf.game-a1.mbga.jp/assets_en/img/sp/assets/leader/raid_normal/";
-  //var characterImageURL = "http://gbf.game-a1.mbga.jp/assets_en/img/sp/assets/npc/raid_normal/";
-  var mainCharacterImageURL = 'http://gbf.game-a1.mbga.jp/assets_en/img/sp/assets/leader/quest/';
-  var characterImageURL     = 'http://gbf.game-a1.mbga.jp/assets_en/img/sp/assets/npc/quest/';
+  var mainCharacterImageURL = 'http://game-a1.granbluefantasy.jp/assets/img_mid/sp/assets/leader/raid_normal/'; //.jpg
+  var characterImageURL     = 'http://game-a1.granbluefantasy.jp/assets/img_mid/sp/assets/npc/raid_normal/';    //.jpg
   var enemyImageURL         = 'http://gbf.game-a1.mbga.jp/assets_en/img/sp/assets/enemy/s/';
-  var skillImageURL         = 'http://gbf.game-a.mbga.jp/assets_en/img/sp/ui/icon/ability/m/';
-  var skillImageClosingURL  = '.png?1458197995';
-  var buffImageURL          = 'http://gbf.game-a1.mbga.jp/assets_en/img/sp/ui/icon/status/x64/';
+  var skillImageURL         = 'http://game-a1.granbluefantasy.jp/assets/img_mid/sp/ui/icon/ability/m/';         //.png
+  var skillImageClosingURL = '.png?1458197995';
+  var statusImageURL        = 'http://game-a1.granbluefantasy.jp/assets/img_mid/sp/ui/icon/status/x64/status_';  //.png
   var summonImageURL        = 'http://gbf.game-a.mbga.jp/assets_en/img/sp/assets/summon/m/';
 
   var remainingQuests = {
@@ -347,17 +345,23 @@
     };
   };
 
-  var createCharacter = function(image, currHP, maxHP, currCharge, maxCharge) {
+  var createCharacter = function (name, id, image, currHP, maxHP, currCharge, maxCharge, attribute, leader) {
     return {
-      image:      image,
-      currHP:     currHP,
-      maxHP:      maxHP,
+      name: name,
+      id: id,
+      image: image,
+      currHP: currHP,
+      maxHP: maxHP,
       currCharge: currCharge,
-      maxCharge:  maxCharge,
-      skills:     [null, null, null, null],
-      buffs:      []
+      maxCharge: maxCharge,
+      attribute: attribute,
+      leader: leader,
+      abilities: [null, null, null, null],
+      buffs: [],
+      debuffs: []
     };
   };
+
   var createSkill = function(name, image, cooldown, turns, time) {
     return {
       name:     name,
@@ -821,6 +825,65 @@
       if (currQuest.devIDs.indexOf(devID) === -1) {
         currQuest.devIDs.push(devID);
       }
+
+      var player = json.player;
+
+      if (player && player !== null && player.param && player.param !== null) {
+        var chars = player.param;
+
+        for (var i = 0; i < player.number; i++) {
+          if (chars[i].leader == 1) {
+            image = mainCharacterImageURL + chars[i].pid_image + '.jpg';
+          } else {
+            image = characterImageURL + chars[i].pid_image + '.jpg';
+          }
+
+          currQuest.characters[i] = createCharacter(
+            chars[i].name,
+            chars[i].pid,
+            image, chars[i].hp,
+            chars[i].hpmax,
+            chars[i].recast,
+            chars[i].recastmax,
+            chars[i].attr,
+            chars[i].leader
+          );
+        }
+      }
+
+      if (json.formation) {
+        currQuest.formation = json.formation;
+      }
+
+      if (json.ability) {
+        var abilities;
+        var ability;
+        for (var i in json.ability) {
+          if (!json.ability.hasOwnProperty(i) ||
+            json.ability[i].list === undefined) {
+            continue;
+          }
+          var pos = json.ability[i].pos;
+          if (currQuest.characters[pos] === null) continue;
+          abilities = json.ability[i].list;
+          for (var j in abilities) {
+            if (!abilities.hasOwnProperty(j)) {
+              continue;
+            }
+            ability = abilities[j][0];
+            image = skillImageURL + ability.class.match(/ico-ability(\d+_\d+)/i)[1] + '.png';
+            currQuest.characters[pos].abilities[j - 1] = createSkill(
+              ability['ability-name'],
+              ability['ability-id'],
+              image,
+              parseInt(ability['ability-recast']),
+              parseInt(ability.duration),
+              parseInt(ability['duration-second'])
+            );
+          }
+        }
+      }
+
       if (json.boss && json.boss.param) {
         for (var i = 0; i < json.boss.param.length; i++) {
           if (currQuest.enemies[i] === null) {
@@ -833,7 +896,7 @@
       }
       if (Options.Get('syncAll')) {
         chrome.tabs.sendMessage(devID, {
-          'updateTurnCounter': {
+          'syncClient': {
             'type': 'start',
             'turn': json.turn,
             'raid_id': currQuest.id,
@@ -849,6 +912,7 @@
       if (json.popup !== undefined) {
         return;
       }
+
       var id = '' + payload.raid_id;
       var currQuest = null;
       for (var i in quests) {
@@ -862,158 +926,210 @@
         for (var i = 0; i < raids.length; i++) {
           if (raids[i].id === id) {
             currQuest = raids[i];
-            console.log("raid");
             break;
           }
         }
       }
+
+      if (currQuest === null) {
+        return;
+      }
+
       if (currQuest.devIDs.indexOf(devID) === -1) {
         currQuest.devIDs.push(devID);
       }
 
-      var refresh = false;
-      for (var i = 0; i < json.scenario.length; i++) {
-        if (json.scenario[i].cmd === 'win') {
-          currQuest.id = '' + json.scenario[i].raid_id;
-          if (json.scenario[i].is_last_raid) {
-            currQuest.url = currQuest.url.replace('raid', 'result');
-            if (Options.Get('skip')) {
-              Message.Post(devID, {'openURL': currQuest.url + currQuest.id});
-              return;
-            }
-          }
-          if (Options.Get('skip') && Options.Get('skipNext')) {
-            Message.Post(devID, {'openURL': currQuest.url + currQuest.id});
-            return;
-          }
-        }
-        if (Options.Get('attackRefresh') && (json.scenario[i].cmd == 'special' || json.scenario[i].cmd == 'special_npc' || json.scenario[i].cmd == 'attack' || json.scenario[i].cmd == 'super')) {
-          refresh = true;
-        } else if (Options.Get('ougiRefresh') && (json.scenario[i].cmd == 'special' || json.scenario[i].cmd == 'special_npc')) {
-          refresh = true;
-        }
-      }
-      if (refresh) {
-        if (Options.Get('fasterRefresh')) {
-          chrome.tabs.sendMessage(devID, { 'fastRefresh': true });
-        } else {
-          Message.Post(devID, { 'openURL': currQuest.url + currQuest.id });
-        }
-      }
-    },
-
-    UpdateTurnCounter: function (json, payload, devID) {
-      if (!Options.Get('syncAll') && !Options.Get('syncTurns') && !Options.Get('syncBossHP')) {
-        return;
-      }
-      var id = '' + payload.raid_id;
-      var currQuest = null;
-      for (var i in quests) {
-        if (!quests.hasOwnProperty(i)) continue;
-        if (quests[i].id === id) {
-          currQuest = quests[i];
-        }
-      }
-
-      if (currQuest === null) {
-        for (var i = 0; i < raids.length; i++) {
-          if (raids[i].id === id) {
-            currQuest = raids[i];
-            break;
-          }
-        }
-      }
-      if (currQuest === null) {
-        return;
-      }
+      var syncTurns = Options.Get('syncAll') || Options.Get('syncTurns');
+      var syncBossHP = Options.Get('syncAll') || Options.Get('syncBossHP');
+      var syncAbilities = Options.Get('syncAll') || Options.Get('syncAbilities');
       var ignoredEnemyHPValues = null;
       var enemies = null;
-      if (Options.Get('syncAll') || Options.Get('syncBossHP')) {
+      var turn = null;
+      var characters = null;
+      var formation = null;
+      
+      if (syncBossHP) {
         ignoredEnemyHPValues = [[], [], []];
         enemies = currQuest.enemies;
-        if (json.scenario) {
-          for (var i = 0; i < json.scenario.length; i++) {
-            switch (json.scenario[i].cmd) {
-              // only worry about these cases
-              case 'boss_gauge':
-                if (currQuest.enemies[json.scenario[i].pos] === null) {
-                  currQuest.enemies[json.scenario[i].pos] = createEnemy(json.scenario[i].hp, json.scenario[i].hpmax);
-                } else {
-                  currQuest.enemies[json.scenario[i].pos].currHP = json.scenario[i].hp;
-                  currQuest.enemies[json.scenario[i].pos].maxHP = json.scenario[i].hpmax;
-                }
-              case 'attack':
-                if (json.scenario[i].from && json.scenario[i].from !== 'player') {
-                  break;
-                }
-                if (json.scenario[i].to && json.scenario[i].to !== 'boss') {
-                  break;
-                }
-                if (json.scenario[i].damage !== undefined) {
-                  for (var j = 0; j < json.scenario[i].damage.length; j++) {
-                    for (var k = 0; k < json.scenario[i].damage[j].length; k++) {
-                      if (isNaN(json.scenario[i].damage[j][k].hp) || isNaN(json.scenario[i].damage[j][k].pos)) {
+      }
+      
+      if (json.scenario) {
+        var isDamage        = false;
+        var isFromPlayer    = false;
+        var isSummon        = false;
+        var isAttack        = false;
+        var isOugi          = false;
+        var isWin           = false;
+        var refresh         = false;
+
+        for (var i = 0; i < json.scenario.length; i++) {
+          var action = json.scenario[i];
+          isFromPlayer = (action.to === "boss") || (action.from === "player") || (action.target === "boss");
+
+          switch (action.cmd) {
+            case 'attack':
+              if (!isFromPlayer) {
+                if (syncBossHP) {
+                  if (action.damage !== undefined) {
+                    for (var j in action.damage) {
+                      if (!action.damage.hasOwnProperty(j)) {
                         continue;
                       }
-                      ignoredEnemyHPValues[json.scenario[i].damage[j][k].pos].push(json.scenario[i].damage[j][k].hp);
+                      for (var k = 0; k < action.damage[j].length; k++) {
+                        if (isNaN(action.damage[j][k].hp) || isNaN(action.damage[j][k].pos)) {
+                          continue;
+                        }
+                        ignoredEnemyHPValues[action.damage[j][k].pos].push(action.damage[j][k].hp);
+                      }
                     }
                   }
                 }
-                break;
-              // ougi and summon handler
-              case 'summon':
-              case 'special':
-              case 'special_npc':
-                if (json.scenario[i].from && json.scenario[i].from !== 'player') {
-                  break;
+              }
+            case 'super':
+              isAttack = true;
+              break;
+            case 'boss_gauge':
+              if (syncBossHP) {
+                if (currQuest.enemies[action.pos] === null) {
+                  currQuest.enemies[action.pos] = createEnemy(action.hp, action.hpmax);
+                } else {
+                  currQuest.enemies[action.pos].currHP = action.hp;
+                  currQuest.enemies[action.pos].maxHP = action.hpmax;
                 }
-                if (json.scenario[i].to && json.scenario[i].to !== 'boss') {
-                  break;
-                }
-                if (json.scenario[i].list !== undefined) {
-                  if (json.scenario[i].list[0].damage.length === 0) {
+              }
+              break;
+            case 'summon':
+              isSummon = true;
+              if (!isFromPlayer) {
+                if (action.list !== undefined) {
+                  if (action.list[0].damage.length === 0) {
                     break;
                   }
-                  for (var j = 0; j < json.scenario[i].list.length; j++) {
-                    for (var k = 0; k < json.scenario[i].list[j].damage.length; k++) {
-                      ignoredEnemyHPValues[json.scenario[i].list[j].damage[k].pos].push(json.scenario[i].list[j].damage[k].hp);
+                  if (syncBossHP) {
+                    for (var j = 0; j < action.list.length; j++) {
+                      for (var k = 0; k < action.list[j].damage.length; k++) {
+                        ignoredEnemyHPValues[action.list[j].damage[k].pos].push(action.list[j].damage[k].hp);
+                      }
                     }
                   }
                 }
-                break;
-              // ability and other damage handler
-              case 'damage':
-                if (json.scenario[i].from && json.scenario[i].from !== 'player') {
-                  break;
-                }
-                if (json.scenario[i].to && json.scenario[i].to !== 'boss') {
-                  break;
-                }
-                if (json.scenario[i].list !== undefined) {
-                  for (var j = 0; j < json.scenario[i].list.length; j++) {
-                    ignoredEnemyHPValues[json.scenario[i].list[j].pos].push(json.scenario[i].list[j].hp);
+              }
+              break;
+            case 'special':
+            case 'special_npc':
+              if (!isFromPlayer) {
+                if (action.list !== undefined) {
+                  if (action.list[0].damage.length === 0) {
+                    break;
+                  }
+                  if (syncBossHP) {
+                    for (var j = 0; j < action.list.length; j++) {
+                      for (var k = 0; k < action.list[j].damage.length; k++) {
+                        ignoredEnemyHPValues[action.list[j].damage[k].pos].push(action.list[j].damage[k].hp);
+                      }
+                    }
                   }
                 }
-                break;
-              default:
-                break;
-            }
-          }
-        }
-        for (var i = 0; i < ignoredEnemyHPValues.length; i++) {
-          if (currQuest.enemies[i] !== null) {
-            for (var j = 0; j < ignoredEnemyHPValues[i].length; j++) {
-              if (ignoredEnemyHPValues[i][j] === currQuest.enemies[i].currHP) {
-                ignoredEnemyHPValues[i].splice(j, 1);
-                break;
               }
-            }
-            ignoredEnemyHPValues[i].push(currQuest.enemies[i].currHP);
+              isAttack = true;
+              isOugi = true;
+              break;
+            // ability and other damage handler
+            case 'damage':
+              if (!isFromPlayer) {
+                if (action.list !== undefined) {
+                  if (syncBossHP) {
+                    for (var j = 0; j < action.list.length; j++) {
+                      ignoredEnemyHPValues[action.list[j].pos].push(action.list[j].hp);
+                    }
+                  }
+                }
+              }
+              break;
+            case 'win':
+              currQuest.id = '' + action.raid_id;
+              if (action.is_last_raid) {
+                currQuest.url = currQuest.url.replace('raid', 'result');
+                isWin = true;
+                if (Options.Get('skip')) {
+                  Message.Post(devID, { 'openURL': currQuest.url + currQuest.id });
+                }
+              }
+              isWin = true;
+              if (Options.Get('skip') && Options.Get('skipNext')) {
+                Message.Post(devID, { 'openURL': currQuest.url + currQuest.id });
+              }
+            default:
+              break;
           }
         }
       }
-      var turn = null;
-      if (Options.Get('syncAll') || Options.Get('syncTurns')) {
+
+      if (!isWin) {
+        if ((Options.Get('attackRefresh') && isAttack) || (Options.Get('ougiRefresh') && isOugi)) {
+          if (Options.Get('fasterRefresh')) {
+            chrome.tabs.sendMessage(devID, { 'fastRefresh': true });
+          } else {
+            Message.Post(devID, { 'openURL': currQuest.url + currQuest.id });
+          }
+        }
+      }
+
+
+      if (syncAbilities && json.status && json.status !== null) {
+        if (json.status.formation) {
+          currQuest.formation = json.status.formation;
+        }
+
+        if (json.status.ability !== undefined) {
+          for (var i in json.status.ability) {
+            if (!json.status.ability.hasOwnProperty(i)) {
+              continue;
+            }
+            var pos = currQuest.formation[json.status.ability[i].pos];
+            if (currQuest.characters[pos] === null) {
+              continue;
+            }
+            var abilities = json.status.ability[i].list;
+            for (var j in abilities) {
+              if (!abilities.hasOwnProperty(j)) {
+                continue;
+              }
+              var ability = abilities[j][0];
+              if (currQuest.characters[pos].abilities[j - 1] !== null) {
+                currQuest.characters[pos].abilities[j - 1].cooldown = parseInt(ability['ability-recast']);
+              } else {
+                image = skillImageURL + ability.class.match(/ico-ability(\d+_\d+)/i)[1] + '.png';
+                currQuest.characters[pos].abilities[j - 1] = createSkill(
+                  ability['ability-name'],
+                  ability['ability-id'],
+                  image,
+                  parseInt(ability['ability-recast']),
+                  parseInt(ability.duration),
+                  parseInt(ability['duration-second'])
+                );
+              }
+            }
+          }
+
+          characters = currQuest.characters;
+          formation = currQuest.formation;
+        }
+      }
+
+      for (var i = 0; i < ignoredEnemyHPValues.length; i++) {
+        if (currQuest.enemies[i] !== null) {
+          for (var j = 0; j < ignoredEnemyHPValues[i].length; j++) {
+            if (ignoredEnemyHPValues[i][j] === currQuest.enemies[i].currHP) {
+              ignoredEnemyHPValues[i].splice(j, 1);
+              break;
+            }
+          }
+          ignoredEnemyHPValues[i].push(currQuest.enemies[i].currHP);
+        }
+      }
+
+      if (syncTurns) {
         if (json.status !== undefined && json.status.turn !== undefined) {
           turn = json.status.turn;
         }
@@ -1022,23 +1138,28 @@
       for (var i = 0; i < currQuest.devIDs.length; i++) {
         if (devID === currQuest.devIDs[i]) {
           chrome.tabs.sendMessage(currQuest.devIDs[i], {
-            'updateTurnCounter': {
+            'syncClient': {
               'type': 'battle',
               'turn': turn,
               'raid_id': currQuest.id,
               'boss': enemies,
-              'ignoredEnemyHPValues': ignoredEnemyHPValues
+              'ignoredEnemyHPValues': ignoredEnemyHPValues,
+              'characters': characters,
+              'formation': formation
             }
           });
         } else {
           chrome.tabs.sendMessage(currQuest.devIDs[i], {
-            'updateTurnCounter': {
-            'type': 'battle',
-            'turn': turn,
-            'raid_id': currQuest.id,
-            'boss': enemies,
-            'ignoredEnemyHPValues': null
-          }});
+            'syncClient': {
+              'type': 'battle',
+              'turn': turn,
+              'raid_id': currQuest.id,
+              'boss': enemies,
+              'ignoredEnemyHPValues': null,
+              'characters': characters,
+              'formation': formation
+            }
+          });
         }
       }
     },
@@ -1102,11 +1223,11 @@
     },
 
     UpdateInProgress: function(json, devID) {
-      var inProgress = json.option.quest.init_list.progress_quest_info;
-      if (inProgress !== undefined && inProgress.length > 0) {
-        var id = '' + inProgress[0].raid_id;
-        quests[id] = createQuest(id, '#raid/', devID);
-      }
+      //var inProgress = json.option.quest.init_list.progress_quest_info;
+      //if (inProgress !== undefined && inProgress.length > 0) {
+      //  var id = '' + inProgress[0].raid_id;
+      //  quests[id] = createQuest(id, '#raid/', devID);
+      //}
     },
 
     CopyTweet: function(json) {
@@ -1203,17 +1324,17 @@
               'id': '#quest-character-image-' + i,
               'value': currQuest.characters[pos].image
             }});
-            for (var j = 0; j < currQuest.characters[pos].skills.length; j++) {
-              if (currQuest.characters[pos].skills[j] !== null) {
+            for (var j = 0; j < currQuest.characters[pos].abilities.length; j++) {
+              if (currQuest.characters[pos].abilities[j] !== null) {
                 Message.Post(devID, {'hideObject': {
                   'id': '#quest-skill-' + i + '-' + j,
                   'value': false
                 }});
                 Message.Post(devID, {'setImage': {
                   'id': '#quest-skill-image-' + i + '-' + j,
-                  'value': currQuest.characters[pos].skills[j].image
+                  'value': currQuest.characters[pos].abilities[j].image
                 }});
-                if (currQuest.characters[pos].skills[j].cooldown === 0) {
+                if (currQuest.characters[pos].abilities[j].cooldown === 0) {
                   Message.Post(devID, {'setText': {
                     'id': '#quest-skill-text-' + i + '-' + j,
                     'value': ''
@@ -1225,7 +1346,7 @@
                 } else {
                   Message.Post(devID, {'setText': {
                     'id': '#quest-skill-text-' + i + '-' + j,
-                    'value': currQuest.characters[pos].skills[j].cooldown
+                    'value': currQuest.characters[pos].abilities[j].cooldown
                   }});
                   Message.Post(devID, {'setOpacity': {
                     'id': '#quest-skill-image-' + i + '-' + j,
