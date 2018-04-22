@@ -3,7 +3,7 @@
   var currURL    = '';
   var pageLoaded = true;
 
-  var CURRENT_VERSION = '1.2.4';
+  var CURRENT_VERSION = '1.2.5';
   var BASE_VERSION    = '1.0.1';
   var patchNotes = {
     '1.0.1': {
@@ -95,6 +95,21 @@
     '1.2.4': {
       'index': 11,
       'notes': ['-Other windows should now resync on refresh']
+    },
+    '1.2.5': {
+      'index': 12,
+      'notes': ['-Added sync player HP/charge option',
+        '-Added sync potions option',
+        '-Added sync character swapping option',
+        '!! NOTE FOR VIRAMATE USERS !!',
+        'This option doesn\'t work as intended with viramate,',
+        'more specifically the skills and CDs don\'t swap',
+        '-Fixed an issue with sync boss HP not being turned on',
+        'which broke a few things',
+        '-Fixed an issue where sometimes refresh/sync',
+        'didn\'t work with some specific scenarios',
+        '-Adjusted some timings on faster refresh',
+        '-Other minor fixes']
     }
   };
   var patchNoteList = [
@@ -109,7 +124,8 @@
     '1.2.1',
     '1.2.2',
     '1.2.3',
-    '1.2.4'
+    '1.2.4',
+    '1.2.5'
   ];
   var currentVersion = undefined;
 
@@ -587,7 +603,12 @@
         if (message.request.url.indexOf('/raid/start.json?_=') !== -1 || message.request.url.indexOf('/multiraid/start.json?_=') !== -1) {
           Quest.StartBattle(message.request.response, message.id);
         }
-        if (message.request.url.indexOf('/normal_attack_result.json?_=') !== -1 || message.request.url.indexOf('/ability_result.json?_=') !== -1 || message.request.url.indexOf('/summon_result.json?_=') !== -1) {
+        if (message.request.url.indexOf('/normal_attack_result.json?_=') !== -1 ||
+            message.request.url.indexOf('/ability_result.json?_=') !== -1 ||
+            message.request.url.indexOf('/summon_result.json?_=') !== -1 ||
+            message.request.url.indexOf('/user_recovery.json?_=') !== -1 ||
+            message.request.url.indexOf('/chat_result.json?_=') !== -1 ||
+            message.request.url.indexOf('/temporary_item_result.json?_=') !== -1) {
           Quest.BattleAction(message.request.response, message.request.payload, message.id);
         }
         if (message.request.url.indexOf('/rest/raid/setting?') !== -1) {

@@ -10,7 +10,11 @@
     syncAll:                   false,
     syncTurns:                 false,
     syncBossHP:                false,
+    syncPlayerHP:              false,
+    syncPotions:               false,
     syncAbilities:             false,
+    syncSummons:               false,
+    syncPlayerFormation:       false,
     enableNotifications:       true,
     muteNotifications:         false,
     apNotifications:           true,
@@ -122,7 +126,11 @@
     'syncAll',
     'syncTurns',
     'syncBossHP',
+    'syncPlayerHP',
+    'syncPotions',
     'syncAbilities',
+    'syncSummons',
+    'syncPlayerFormation',
     'fasterRefresh'
   ];
 

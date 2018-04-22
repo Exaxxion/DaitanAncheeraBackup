@@ -31,7 +31,12 @@
       syncAll: false,
       syncTurns: false,
       syncBossHP: false,
-      syncAbilities: false
+      syncPlayerHP: false,
+      syncPotions: false,
+      syncAbilities: false,
+      syncSummons: false,
+      syncPlayerFormation: false,
+      fasterRefresh: false
     },
     port = null,
     pendingMsgs = [],
@@ -69,8 +74,8 @@
   function handleMessage(msg) {
     var message = msg.data;
     if (typeof message.fastRefresh !== "undefined") {
-      window.history.go(-1);
-      window.setTimeout(function () { window.history.go(1); }, 100);
+      window.setTimeout(function () { window.history.go(-1); }, 100);
+      window.setTimeout(function () { window.history.go(1); }, 250);
     }
     if (typeof message.gameState !== "undefined") {
       var gs = message.gameState;
@@ -125,6 +130,78 @@
         context.stage.gGameStatus.lock = message.updateOugiToggleBtn;
       }
     }
+    if (typeof message.updateClientFormationData !== "undefined") {
+      if (options.syncAll || options.syncPlayerFormation) {
+        if (typeof context.stage !== "undefined" && context.stage !== null) {
+          if (typeof context.stage.gGameStatus !== "undefined" &&
+              context.stage.gGameStatus !== null) {
+            var pos;
+            var msg = message.updateClientFormationData;
+            var whitelist = [
+              'alive',      'attr',            'condition',       'effect',
+              'extra_attr', 'form',            'formchange_type', 'hp',
+              'hpmax',      'leader',          'name',            
+              'pid_image',  'pid_image_cutin', 'recast',          'recastmax',
+              'setting_id', 'skip_flag',       'special_comment', 'special_skill',
+              'split'];
+            for (var i = 0; i < msg.formation.length; i++) {
+              pos = msg.formation[i];
+              if (typeof msg.characters[pos] !== "undefined" && msg.characters[pos] !== null) {
+                for (var key in context.stage.gGameStatus.player.param[i]) {
+                  if (!context.stage.gGameStatus.player.param[i].hasOwnProperty(key)) continue;
+                  if (!msg.characters[pos].data.hasOwnProperty(key)) continue;
+                  if (whitelist.indexOf(key) !== -1) {
+                    context.stage.gGameStatus.player.param[i][key] = msg.characters[pos].data[key];
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    if (typeof message.updatePlayerHP !== "undefined") {
+      if (options.syncAll || options.syncPlayerHP) {
+        if (typeof context.stage !== "undefined" && context.stage !== null) {
+          if (typeof context.stage.gGameStatus !== "undefined" &&
+            context.stage.gGameStatus !== null) {
+            var pos;
+            var msg = message.updatePlayerHP;
+            for (var i = 0; i < msg.formation.length; i++) {
+              pos = msg.formation[i];
+              if (typeof msg.characters[pos] !== "undefined" && msg.characters[pos] !== null &&
+                typeof context.stage.gGameStatus.player.param[i] !== "undefined" &&
+                context.stage.gGameStatus.player.param[i] !== null) {
+                context.stage.gGameStatus.player.param[i].hp = parseInt(msg.characters[pos].currHP);
+                context.stage.gGameStatus.player.param[i].recast = '' + msg.characters[pos].currCharge;
+              }
+            }
+          }
+        }
+      }
+    }
+    if (typeof message.updatePotions !== "undefined") {
+      if (options.syncAll || options.syncPotions) {
+        if (typeof context.stage !== "undefined" && context.stage !== null) {
+          if (typeof context.stage.gGameStatus !== "undefined" &&
+            context.stage.gGameStatus !== null) {
+            context.stage.gGameStatus.potion.count = message.updatePotions.elixir.count;
+            context.stage.gGameStatus.potion.limit_flg = message.updatePotions.elixir.limit_flg;
+            context.stage.gGameStatus.potion.limit_number = message.updatePotions.elixir.limit_number;
+            context.stage.gGameStatus.potion.limit_remain = message.updatePotions.elixir.limit_remain;
+            context.stage.gGameStatus.temporary.large = message.updatePotions.large;
+            context.stage.gGameStatus.temporary.small = message.updatePotions.small;
+            if (typeof context.stage.gGameStatus.event !== "undefined") {
+              for (var key in context.stage.gGameStatus.event.item) {
+                if (!context.stage.gGameStatus.event.item.hasOwnProperty(key)) continue;
+                if (!message.updatePotions.hasOwnProperty(key)) continue;
+                context.stage.gGameStatus.event.item[key].number = message.updatePotions[key];
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   function updateTurns() {
@@ -139,6 +216,7 @@
     }
     if (typeof context.stage.gGameStatus === "undefined" || context.stage.gGameStatus === null) {
       return;
+      consoleLog('before: ' + context.stage.gGameStatus.turn);
     }
     if (context.stage.gGameStatus.turn < gameVars.gs.turn) {
       context.stage.gGameStatus.turn = gameVars.gs.turn;
@@ -158,7 +236,7 @@
   function observeEnemyHP(i) {
     new MutationObserver(function (mutations) {
       updateEnemyHP(i);
-    }).observe(document.getElementById('enemy-hp' + i), { attributes: false, attributeOldValue: false, characterData: false, subtree: false, childList: true });
+    }).observe(context.document.getElementById('enemy-hp' + i), { attributes: false, attributeOldValue: false, characterData: false, subtree: false, childList: true });
   }
 
   function updateEnemyHP(i) {
@@ -190,8 +268,8 @@
         gameVars.gs.boss.param[i].hp = context.stage.gGameStatus.boss.param[i].hp;
         gameVars.gs.boss.param[i].hpmax = context.stage.gGameStatus.boss.param[i].hpmax;
         var hpPercent = '' + Math.ceil((gameVars.gs.boss.param[i].hp / gameVars.gs.boss.param[i].hpmax) * 100);
-        if (hpPercent !== $('#enemy-hp' + i).text()) {
-          $('#enemy-hp' + i).text(hpPercent);
+        if (hpPercent !== context.document.getElementById('enemy-hp' + i).textContent) {
+          context.document.getElementById('enemy-hp' + i).textContent = hpPercent;
         }
       }
     }
@@ -213,29 +291,29 @@
               updateTurns();
             }
             if (trigger.turnCounter === undefined) {
-              if ($('.prt-turn-info').length) {
+              if (context.document.getElementsByClassName('prt-turn-info').length) {
                 new MutationObserver(function (mutations) {
                   updateTurns();
-                }).observe(document.getElementsByClassName('prt-turn-info')[0], { attributes: true, attributeOldValue: true, characterData: false, subtree: true, childList: true });
+                }).observe(context.document.getElementsByClassName('prt-turn-info')[0], { attributes: true, attributeOldValue: true, characterData: false, subtree: true, childList: true });
                 trigger.turnCounter = true;
               }
             }
           }
           if (options.syncAll || options.syncBossHP) {
             if (trigger.enemyHP0 === undefined) {
-              if ($('#enemy-hp0').length) {
+              if (context.document.getElementById('enemy-hp0') !== null) {
                 observeEnemyHP(0);
                 trigger.enemyHP0 = true;
               }
             }
             if (trigger.enemyHP1 === undefined) {
-              if ($('#enemy-hp1').length) {
+              if (context.document.getElementById('enemy-hp1') !== null) {
                 observeEnemyHP(1);
                 trigger.enemyHP1 = true;
               }
             }
             if (trigger.enemyHP2 === undefined) {
-              if ($('#enemy-hp2').length) {
+              if (context.document.getElementById('enemy-hp2') !== null) {
                 observeEnemyHP(2);
                 trigger.enemyHP2 = true;
               }
@@ -244,8 +322,8 @@
         }
       }
     });
-  }).observe(document, { attributes: true, attributeOldValue: true, characterData: false, subtree: true, childList: true });
-  window.addEventListener("hashchange", function (event) {
+  }).observe(context.document, { attributes: true, attributeOldValue: true, characterData: false, subtree: true, childList: true });
+  context.window.addEventListener("hashchange", function (event) {
     if (typeof trigger.turnCounter !== "undefined") {
       delete trigger.turnCounter;
     }

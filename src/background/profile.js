@@ -98,7 +98,13 @@
       }
     },
 
-    CompleteQuest: function(json, raidTuples) {
+    CompleteQuest: function (json, raidTuples) {
+      if (json === undefined || json === null) {
+        return;
+      }
+      if (json.popup_data && !json.popup_data.response) {
+        return;
+      }
       var tuples = {};
       if (raidTuples !== undefined) {
         tuples = raidTuples;
@@ -161,7 +167,13 @@
       setProfile(tuples);
     },
 
-    CompleteRaid: function(json) {
+    CompleteRaid: function (json) {
+      if (json === undefined || json === null) {
+        return;
+      }
+      if (json.popup_data && !json.popup_data.response) {
+        return;
+      }
       var path;
       var tuples = {};
       var ids    = ['10100', '20100', '20200'];

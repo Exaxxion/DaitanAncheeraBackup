@@ -1,4 +1,4 @@
-(function() {
+﻿(function() {
   $(window).on('beforeunload', function() {
     chrome.runtime.sendMessage({ refresh: true });
   });
@@ -14,7 +14,12 @@
       syncAll: false,
       syncTurns: false,
       syncBossHP: false,
-      syncAbilities: false
+      syncPlayerHP: false,
+      syncPotions: false,
+      syncAbilities: false,
+      syncSummons: false,
+      syncPlayerFormation: false,
+      fasterRefresh: false
     },
     shadowScript = null,
     externalChannel = null,
@@ -169,9 +174,38 @@
             }
           }
           updateClient(gameState, message.syncClient.ignoredEnemyHPValues, message.syncClient.type);
-          if ((options.syncAll || options.syncAbilities) &&
-            (message.syncClient.characters !== null && message.syncClient.formation !== null)) {
-            updateAbilityCooldowns(message.syncClient.characters, message.syncClient.formation);
+          if (message.syncClient.characters !== null && message.syncClient.formation !== null) {
+            if (options.syncAll || options.syncAbilities) {
+              updateAbilityCooldowns(message.syncClient.characters, message.syncClient.formation);
+            }
+            if (options.syncAll || options.syncPlayerHP) {
+              updatePlayerHP(message.syncClient.characters, message.syncClient.formation);
+              sendExternalMessage({
+                'updatePlayerHP': {
+                  'formation': message.syncClient.formation,
+                  'characters': message.syncClient.characters
+                }
+              });
+            }
+            if (options.syncAll || options.syncPlayerFormation) {
+              if (message.syncClient.hasFormationChanged) {
+                updatePlayerFormation(message.syncClient.characters, message.syncClient.formation);
+                sendExternalMessage({
+                  'updateClientFormationData': {
+                    'formation': message.syncClient.formation,
+                    'characters': message.syncClient.characters
+                  }
+                });
+              }
+            }
+            if (options.syncAll || options.syncPotions) {
+              if (message.syncClient.potions !== null) {
+                updatePotions(message.syncClient.potions);
+                sendExternalMessage({
+                  'updatePotions': message.syncClient.potions
+                });
+              }
+            }
           }
         }
       }
@@ -277,7 +311,7 @@
     });
   };
 
-  var updateAbilityCooldowns = function (chars, formation) {
+  var updateAbilityCooldowns = function(chars, formation) {
     if (chars === undefined || chars === null || formation === undefined || formation === null) {
       return;
     }
@@ -285,45 +319,351 @@
     var abilities;
     var ability;
     var $ability;
+    var $abilities;
     var $abilityParent;
     var $abilityShine;
+    var $charContainer;
 
     for (var i = 0; i < formation.length; i++) {
       pos = formation[i];
-      if (chars[pos] && chars[pos] !== null) {
-        abilities = chars[pos].abilities;
-        for (var j = 0; j < abilities.length; j++) {
-          ability = abilities[j];
-          if (ability && ability !== null) {
-            $ability = $('.ability-character-num-' + (i + 1) + '-' + (j + 1));
-            if ($ability.length) {
-              for (var k = 0; k < $ability.length; k++) {
-                $($ability[k]).attr('ability-recast', ability.cooldown);
-                $abilityParent = $($ability[k]).parent();
-                $abilityShine = $abilityParent.find('.ico-ability-shine');
-                if (ability.cooldown === 0) {
-                  if ($abilityParent.hasClass('btn-ability-unavailable')) {
-                    $abilityParent.removeClass('btn-ability-unavailable').addClass('btn-ability-available');
-                  }
-                  if ($abilityShine.length) {
-                    $abilityShine.css('display', 'none');
-                  }
-                } else {
-                  if ($abilityParent.hasClass('btn-ability-available')) {
-                    $abilityParent.removeClass('btn-ability-available').addClass('btn-ability-unavailable');
-                  }
-                  if ($abilityShine.length) {
-                    $abilityShine.css('display', 'block');
-                  }
-                }
-              }
+      if (chars[pos] === undefined || chars[pos] === null) {
+        continue;
+      }
+
+      abilities = chars[pos].abilities;
+
+      for (var j = 0; j < abilities.length; j++) {
+
+        ability = abilities[j];
+        if (ability === undefined || ability === null) {
+          continue;
+        }
+
+        $ability = $('.ability-character-num-' + (i + 1) + '-' + (j + 1));
+        if (!$ability.length) {
+          continue;
+        }
+
+        for (var k = 0; k < $ability.length; k++) {
+          $($ability[k]).attr('ability-recast', ability.cooldown);
+          $abilityParent = $($ability[k]).parent();
+          $abilityShine = $abilityParent.find('.ico-ability-shine');
+
+          if (ability.cooldown === 0) {
+            if ($abilityParent.hasClass('btn-ability-unavailable')) {
+              $abilityParent.removeClass('btn-ability-unavailable').addClass('btn-ability-available');
+            }
+            if ($abilityShine.length) {
+              $abilityShine.css('display', 'none');
+            }
+          } else {
+            if ($abilityParent.hasClass('btn-ability-available')) {
+              $abilityParent.removeClass('btn-ability-available').addClass('btn-ability-unavailable');
+            }
+            if ($abilityShine.length) {
+              $abilityShine.css('display', 'block');
+            }
+          }
+          $abilityShine.attr('class', 'shine' + ability.cooldown + ' ico-ability-shine');
+          $abilityParent.find('.ico-ability-recast').find('span').attr({
+            'class': 'num-recast-a' + ability.cooldown + ' ability-icon-num-' + (i + 1) + '-' + (j + 1),
+            'value': ability.cooldown
+          });
+
+          if (ability.data.start_skill_set_recast !== undefined &&
+              ability.data.start_skill_set_recast !== null &&
+              ability.data.start_skill_set_recast != 0 &&
+              ability.data.start_skill_set_recast !== '') {
+            $abilityParent.find('.prt-start-recast').attr('class', 'prt-start-recast start-recast-' + ability.cooldown);
+          } else {
+            $abilityParent.find('.prt-start-recast').attr('class', 'prt-start-recast');
+          }
+        }
+
+        $charContainer = $('.lis-character' + i);
+        if (!$charContainer.length >= 2) {
+          continue;
+        }
+
+        // only interate first 2 elements, not sure what the other remaining 2 are for
+        // probably for popup prompts??
+        for (var k = 0; k < 2; k++) {
+          $ability = $($charContainer[k]).find('.ability' + (j + 1));
+          if (!$ability.length) {
+            continue;
+          }
+
+          for (var m = 0; m < $ability.length; m++) {
+
+            if (ability.cooldown === 0) {
+              $($ability[m]).attr('state', '2');
+            } else {
+              $($ability[m]).attr('state', '1');
             }
           }
         }
       }
     }
   };
-  
+
+  var updatePlayerHP = function(chars, formation) {
+    if (chars === undefined || chars === null || formation === undefined || formation === null) {
+      return;
+    }
+    var pos;
+    var $charContainer;
+    var $char;
+    var $charHPText;
+    var $charHPBar;
+    var $charChargeBar;
+    var hpPercent;
+
+    for (var i = 0; i < formation.length; i++) {
+      pos = formation[i];
+
+      if (chars[pos] === undefined || chars[pos] === null) {
+        continue;
+      }
+      if (isNaN(chars[pos].currHP) || isNaN(chars[pos].maxHP) || isNaN(chars[pos].currCharge)) {
+        continue;
+      }
+
+      $charContainer = $('.lis-character' + i);
+      if (!$charContainer.length >= 2) {
+        continue;
+      }
+
+      // only interate first 2 elements, not sure what the other remaining 2 are for
+      // probably for popup prompts??
+      for (var j = 0; j < 2; j++) {
+        $char = $($charContainer[j]);
+
+        hpPercent = Math.trunc(chars[pos].currHP * 100 / chars[pos].maxHP);
+        $charHPText = $char.find('.txt-hp-value');
+        $charHPText.text(chars[pos].currHP);
+        $charHPBar = $char.find('.prt-gauge-hp-inner');
+        $charHPBar.css('width', hpPercent + '%');
+        if (hpPercent > 25) {
+          $charHPText.attr('color', 'green');
+          $charHPBar.attr('color', 'green');
+        } else {
+          $charHPText.attr('color', 'red');
+          $charHPBar.attr('color', 'red');
+        }
+
+        $char.find('.txt-gauge-value').text(chars[pos].currCharge);
+        $charChargeBar = $char.find('.prt-gauge-special');
+
+        if (chars[pos].currCharge < 100) {
+          $charChargeBar.find('.prt-gauge-special-inner').css('width', chars[pos].currCharge + '%');
+          $charChargeBar.find('.prt-gauge-special2-inner').css('width', '0%');
+          $charChargeBar.find('.prt-shine').css('display', 'none');
+          $charChargeBar.find('.prt-shine2').css('display', 'none');
+        } else if (chars[pos].currCharge >= 100 && chars[pos].currCharge < 200) {
+          $charChargeBar.find('.prt-gauge-special-inner').css('width', '100%');
+          $charChargeBar.find('.prt-gauge-special2-inner').css('width', ((chars[pos].currCharge - 100) > 0 ? (chars[pos].currCharge - 100) : 0) + '%');
+          $charChargeBar.find('.prt-shine').css('display', 'block');
+          $charChargeBar.find('.prt-shine2').css('display', 'none');
+        } else {
+          $charChargeBar.find('.prt-gauge-special-inner').css('width', '100%');
+          $charChargeBar.find('.prt-gauge-special2-inner').css('width', '100%');
+          $charChargeBar.find('.prt-shine').css('display', 'block');
+          $charChargeBar.find('.prt-shine2').css('display', 'block');
+        }
+      }
+    }
+  };
+
+  var updatePlayerFormation = function(chars, formation) {
+    if (chars === undefined || chars === null || formation === undefined || formation === null) {
+      return;
+    }
+
+    var pos;
+    var abilities;
+    var ability;
+    var $ability;
+    var $abilities;
+    var $abilityParent;
+    var $abilityIcon;
+    var $charContainer;
+    var $charImage;
+    var textData;
+
+    var isViramate = false;
+    var viramateShortcuts = ['Q', 'W', 'E', 'R'];
+
+    if ($('.quick-panels').length) {
+      isViramate = true;
+    }
+
+    for (var i = 0; i < formation.length; i++) {
+      pos = formation[i];
+      if (chars[pos] === undefined || chars[pos] === null) {
+        continue;
+      }
+      if (chars[pos].currHP <= 0) {
+        continue;
+      }
+
+      $charContainer = $('.lis-character' + i);
+      if (!$charContainer.length >= 2) {
+        continue;
+      }
+
+      for (var j = 0; j < 2; j++) {
+        $charImage = $($charContainer[j]).find('.img-chara-command');
+        if (chars[pos].currHP <= 0) {
+          $charImage.attr('src', 'http://game-a1.granbluefantasy.jp/assets_en/img/sp/assets/npc/raid_normal/3999999999.jpg');
+          if (isViramate) {
+            $('.quick-panels').find("[index='" + i + "']");
+          }
+        } else {
+          $charImage.attr('src', chars[pos].image);
+          $($charContainer[j]).find('.ico-type').attr('class', 'ico-type ico-attribute-' + chars[pos].attribute);
+        }
+      }
+
+      abilities = chars[pos].abilities;
+
+      for (var j = 0; j < abilities.length; j++) {
+
+        ability = abilities[j];
+        $ability = $('.ability-character-num-' + (i + 1) + '-' + (j + 1));
+        if (!$ability.length) {
+          continue;
+        }
+
+        for (var k = 0; k < $ability.length; k++) {
+          $abilityParent = $($ability[k]).parent();
+          if (ability !== undefined && ability !== null) {
+            $($ability[k]).attr(ability.data);
+            if (ability.data['text-data'].indexOf('</div>') === -1) {
+              textData = '<div class=prt-text-small>' + ability.data['text-data'] + '</div>';
+            } else {
+              textData = ability.data['text-data'];
+            }
+            $($ability[k]).attr('text-data', textData);
+
+            if (isViramate) {
+              $($ability[k]).attr('hotkey-text', viramateShortcuts[j]);
+            }
+
+            $abilityIcon = $($ability[k]).find('.img-ability-icon');
+            if ($abilityIcon.length) {
+              $abilityIcon.attr('src', ability.image).css({ 'height': '44px', 'width': '44px' });
+            } else {
+              $($ability[k]).append($('<img/>', {
+                'class': 'img-ablity-icon',
+                'src': ability.image
+              }).css({ 'height': '44px', 'width': '44px' }));
+            }
+
+            textData = ability.data['ability-name'] + '\n';
+            textData += ability.data['text-data'].replace('<div class=prt-text-small>', '').replace('</div>', '') + '\n';
+            textData += 'Cooldown: ' + ability.cooldown + ' turn(s)';
+            $abilityParent.attr('title', textData);
+            $abilityParent.removeClass('empty');
+            
+            for (var m = 0; m < 2; m++) {
+              $ability = $($charContainer[m]).find('.ability' + (j + 1));
+              if (!$ability.length) {
+                continue;
+              }
+
+              for (var n = 0; n < $ability.length; n++) {
+                $($ability[n]).attr('type', ability.data['icon-type']);
+              }
+            }
+          } else {
+            $abilityParent.removeClass('btn-ability-available').removeClass('btn-ability-unavailable').addClass('empty');
+
+            $ability.find('img').remove();
+            $ability.each(function () {
+              var attributes = this.attributes;
+              for (var k = attributes.length - 1; k > 0; --k) {
+                var attr = attributes[k];
+                if (attr.name.indexOf('class') === -1) {
+                  this.removeAttributeNode(attr);
+                }
+              }
+            });
+
+            var $span = $abilityParent.find('.ico-ability-recast').find('span');
+            $span.attr({
+              'class': 'num-recast-a0 ability-icon-num-' + (i + 1) + '-' + (j + 1)
+            });
+            $span.removeAttr('value');
+
+            $abilityParent.find('.ability-character-num-' + (i + 1) + '-' + (j + 1)).attr('class', 'ico-ability ability-character-num-' + (i + 1) + '-' + (j + 1));
+            $abilityParent.find('.ico-ability-shine').attr('class', 'ico-ability-shine');
+            
+            for (var m = 0; m < 2; m++) {
+              $ability = $($charContainer[m]).find('.ability' + (j + 1));
+              if (!$ability.length) {
+                continue;
+              }
+
+              for (var n = 0; n < $ability.length; n++) {
+                $($ability[n]).attr('state', '0');
+              }
+            }
+          }
+        } 
+      }
+    }
+  }
+
+  var updatePotions = function(potions) {
+    var $small = $('.item-small');
+    var $large = $('.item-large');
+    var $elixir = $('.item-potion');
+    var $eventContainer = $('.prt-event-item');
+    var $eventPotions;
+    var $event;
+
+    if ($small.length) {
+      $small.find('.having-num').text(potions.small);
+      if (potions.small != 0) {
+        $small.removeClass('disable');
+      } else if ($small.hasClass('disable')) {
+        $small.addClass('disable');
+      }
+    }
+
+    if ($large.length) {
+      $large.find('.having-num').text(potions.large);
+      if (potions.large != 0) {
+        $large.removeClass('disable');
+      } else if ($large.hasClass('disable')) {
+        $large.addClass('disable');
+      }
+    }
+
+    if (!potions.elixir.is_trialbattle && potions.elixir.limit_flg) {
+      if ($elixir.length) {
+        $elixir.find('.having-num').text(potions.elixir.count);
+        if (potions.elixir.limit_remain != 0) {
+          $elixir.removeClass('disable');
+        } else if ($elixir.hasClass('disable')) {
+          $elixir.addClass('disable');
+        }
+      }
+    }
+
+    if ($eventContainer.length) {
+      $eventPotions = $eventContainer.find('.btn-event-item');
+      for (var i = 0; i < $eventPotions.length; i++) {
+        for (var j in potions) {
+          if (!potions.hasOwnProperty(j)) continue;
+          if ($($eventPotions[i]).attr('item-id') === j) {
+            $($eventPotions[i]).find('.having-num').text(potions[j]);
+          }
+        }
+      }
+    }
+  }
+
   $(document).ready(function () {
     messageDevTools({ 'initialize': true });
 

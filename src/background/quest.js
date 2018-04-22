@@ -337,15 +337,28 @@
       url:        url,
       image:      greyIcon,
       characters: [null, null, null, null, null, null],
+      charNum:    0,
       formation:  [],
       buffs:      [],
       enemies:    [null, null, null],
       summons:    [null, null, null, null, null, null],
-      devIDs:     devIDs
+      devIDs:     devIDs,
+      lyria_pos:  -1,
+      lyria_num:  -1,
+      potions: {
+        'elixir': {
+          'count': null,
+          'limit_flg': null,
+          'limit_number': null,
+          'limit_remain': null
+        },
+        'small': null,
+        'large': null
+      }
     };
   };
 
-  var createCharacter = function (name, id, image, currHP, maxHP, currCharge, maxCharge, attribute, leader) {
+  var createCharacter = function (name, id, image, currHP, maxHP, currCharge, maxCharge, attribute, leader, data) {
     return {
       name: name,
       id: id,
@@ -358,17 +371,20 @@
       leader: leader,
       abilities: [null, null, null, null],
       buffs: [],
-      debuffs: []
+      debuffs: [],
+      data: data
     };
   };
 
-  var createSkill = function(name, image, cooldown, turns, time) {
+  var createSkill = function(name, id, image, cooldown, turns, time, data) {
     return {
       name:     name,
+      id:       id,
       image:    image,
       cooldown: cooldown,
       turns:    turns,
       time:     time,
+      data:     data
     };
   };
   var createBuff = function(owner, image, turns) {
@@ -790,9 +806,18 @@
       var enemies = null;
       var characters = null;
       var formation = null;
+      var summons = null;
+      var potions = null;
+      var summonCooldowns = null;
+      var hasLeader = false;
+      var canSummon = false;
       var syncTurns = Options.Get('syncAll') || Options.Get('syncTurns');
       var syncBossHP = Options.Get('syncAll') || Options.Get('syncBossHP');
+      var syncPlayerHP = Options.Get('syncAll') || Options.Get('syncPlayerHP');
+      var syncPotions = Options.Get('syncAll') || Options.Get('syncPotions');
       var syncAbilities = Options.Get('syncAll') || Options.Get('syncAbilities');
+      var syncSummons = Options.Get('syncAll') || Options.Get('syncSummons');
+      var syncPlayerFormation = Options.Get('syncAll') || Options.Get('syncPlayerFormation');
       var currQuest;
 
       if (json.twitter !== undefined && json.twitter.battle_id !== undefined) {
@@ -838,6 +863,7 @@
 
       if (player && player !== null && player.param && player.param !== null) {
         var chars = player.param;
+        currQuest.charNum = player.number;
 
         for (var i = 0; i < player.number; i++) {
           if (chars[i].leader == 1) {
@@ -845,16 +871,18 @@
           } else {
             image = characterImageURL + chars[i].pid_image + '.jpg';
           }
-
+          // var createCharacter = function (name, id, image, currHP, maxHP, currCharge, maxCharge, attribute, leader) 
           currQuest.characters[i] = createCharacter(
             chars[i].name,
             chars[i].pid,
-            image, chars[i].hp,
-            chars[i].hpmax,
-            chars[i].recast,
-            chars[i].recastmax,
+            image,
+            parseInt(chars[i].hp),
+            parseInt(chars[i].hpmax),
+            parseInt(chars[i].recast),
+            parseInt(chars[i].recastmax),
             chars[i].attr,
-            chars[i].leader
+            chars[i].leader,
+            chars[i]
           );
         }
       }
@@ -880,13 +908,15 @@
             }
             ability = abilities[j][0];
             image = skillImageURL + ability.class.match(/ico-ability(\d+_\d+)/i)[1] + '.png';
+
             currQuest.characters[pos].abilities[j - 1] = createSkill(
               ability['ability-name'],
               ability['ability-id'],
               image,
               parseInt(ability['ability-recast']),
               parseInt(ability.duration),
-              parseInt(ability['duration-second'])
+              parseInt(ability['duration-second']),
+              ability
             );
           }
         }
@@ -895,13 +925,79 @@
       if (json.boss && json.boss.param) {
         for (var i = 0; i < json.boss.param.length; i++) {
           if (currQuest.enemies[i] === null) {
-            currQuest.enemies[i] = createEnemy(json.boss.param[i].hp, json.boss.param[i].hpmax);
+            currQuest.enemies[i] = createEnemy(parseInt(json.boss.param[i].hp), parseInt(json.boss.param[i].hpmax));
           } else {
-            currQuest.enemies[i].currHP = json.boss.param[i].hp;
-            currQuest.enemies[i].maxHP = json.boss.param[i].hpmax;
+            currQuest.enemies[i].currHP = parseInt(json.boss.param[i].hp);
+            currQuest.enemies[i].maxHP = parseInt(json.boss.param[i].hpmax);
           }
         }
       }
+
+      if (json.potion) {
+        currQuest.potions.elixir.count = json.potion.count;
+        currQuest.potions.elixir.limit_flg = json.potion.limit_flg;
+        currQuest.potions.elixir.limit_number = json.potion.limit_number;
+        currQuest.potions.elixir.limit_remain = json.potion.limit_number;
+      }
+
+      if (json.is_trialbattle) {
+        currQuest.potions.elixir.is_trialbattle = json.is_trialbattle;
+      } else {
+        currQuest.potions.elixir.is_trialbattle = false;
+      }
+
+      if (json.temporary) {
+        currQuest.potions.small = json.temporary.small;
+        currQuest.potions.large = json.temporary.large;
+      }
+
+      if (json.event && json.event.item) {
+        for (var key in json.event.item) {
+          if (!json.event.item.hasOwnProperty(key)) continue;
+          currQuest.potions[json.event.item[key].id] = json.event.item[key].number; 
+        }
+      }
+
+      //currQuest.lyria_num = json.lyria_num;
+      //currQuest.lyria_pos = json.lyria_pos;
+
+      //if (json.summon !== undefined && json.summon !== null) {
+      //  summonCooldowns = [];
+      //  for (var i = 0; i < json.summon.length; i++) {
+      //    summonCooldowns.push({
+      //      'cooldown': json.summon[i].recast,
+      //      'special_once_flag': json.summon[i].special_once_flag
+      //    });
+      //  }
+      //}
+
+      //if (json.supporter !== undefined && json.supporter !== null) {
+      //  if (json.supporter.recast !== undefined &&
+      //      json.supporter.recast !== null &&
+      //      json.supporter.special_once_flag !== undefined &&
+      //      json.supporter.special_once_flag !== null) {
+      //    summonCooldowns.push({
+      //      'turn': json.supporter.recast,
+      //      'special_once_flag': json.supporter.special_once_flag
+      //    });
+      //  }
+      //}
+
+      //for (var i = 1; i < currQuest.formation.length; i++) {
+      //  var pos = currQuest.formation[i];
+      //  if (currQuest.characters[pos].leader) {
+      //    hasLeader = true;
+      //    break;
+      //  }
+      //}
+
+      //if (currQuest.lyria_num !== -1) {
+      //  if (currQuest.lyria_pos !== -1) {
+      //    canSummon = true;
+      //  }
+      //} else if (hasLeader) {
+      //  canSummon = true;
+      //}
 
       if (syncTurns) {
         turn = json.turn;
@@ -909,12 +1005,23 @@
       if (syncBossHP) {
         enemies = currQuest.enemies;
       }
-      if (syncAbilities) {
+      if (syncAbilities || syncPlayerHP || syncPlayerFormation) {
         characters = currQuest.characters;
         formation = currQuest.formation;
       }
+      //if (syncSummons) {
+      //  summons = {
+      //    'cooldowns': summonCooldowns,
+      //    'canSummon': canSummon,
+      //    'summon_enable': json.summon_enable
+      //  };
+      //}
+      if (syncPotions) {
+        potions = currQuest.potions;
+      }
 
-      if (syncTurns || syncBossHP || syncAbilities) {
+      if (syncTurns || syncBossHP || syncPlayerHP ||
+        syncAbilities || syncSummons || syncPlayerFormation) {
         for (var i = 0; i < currQuest.devIDs.length; i++) {
           chrome.tabs.sendMessage(currQuest.devIDs[i], {
             'syncClient': {
@@ -923,8 +1030,11 @@
               'raid_id': currQuest.id,
               'boss': enemies,
               'ignoredEnemyHPValues': null,
-              'characters': currQuest,
-              'formation': formation
+              'characters': characters,
+              'formation': formation,
+              'hasFormationChanged': syncPlayerFormation,
+              'summons': summons,
+              'potions': potions
             }
           });
         }
@@ -965,12 +1075,22 @@
 
       var syncTurns = Options.Get('syncAll') || Options.Get('syncTurns');
       var syncBossHP = Options.Get('syncAll') || Options.Get('syncBossHP');
+      var syncPlayerHP = Options.Get('syncAll') || Options.Get('syncPlayerHP');
+      var syncPotions = Options.Get('syncAll') || Options.Get('syncPotions');
       var syncAbilities = Options.Get('syncAll') || Options.Get('syncAbilities');
+      var syncSummons = Options.Get('syncAll') || Options.Get('syncSummons');
+      var syncPlayerFormation = Options.Get('syncAll') || Options.Get('syncPlayerFormation');
       var ignoredEnemyHPValues = null;
       var enemies = null;
       var turn = null;
       var characters = null;
       var formation = null;
+      var hasFormationChanged = false;
+      var summons = null;
+      var summonCooldowns = null;
+      var hasLeader = false;
+      var canSummon = false;
+      var potions = null;
       
       if (syncBossHP) {
         ignoredEnemyHPValues = [[], [], []];
@@ -992,46 +1112,120 @@
 
           switch (action.cmd) {
             case 'attack':
-              if (!isFromPlayer) {
-                if (syncBossHP) {
-                  if (action.damage !== undefined) {
-                    for (var j in action.damage) {
-                      if (!action.damage.hasOwnProperty(j)) {
+              if (action.damage !== undefined) {
+                if (isFromPlayer) {
+                  for (var j in action.damage) {
+                    if (!action.damage.hasOwnProperty(j)) {
+                      continue;
+                    }
+                    for (var k = 0; k < action.damage[j].length; k++) {
+                      if (isNaN(action.damage[j][k].hp) || isNaN(action.damage[j][k].pos)) {
                         continue;
                       }
-                      for (var k = 0; k < action.damage[j].length; k++) {
-                        if (isNaN(action.damage[j][k].hp) || isNaN(action.damage[j][k].pos)) {
-                          continue;
-                        }
+                      if (syncBossHP) {
                         ignoredEnemyHPValues[action.damage[j][k].pos].push(action.damage[j][k].hp);
                       }
                     }
                   }
+                  isDamage = true;
+                } else {
+                  for (var j in action.damage) {
+                    if (!action.damage.hasOwnProperty(j)) {
+                      continue;
+                    }
+                    for (var k = 0; k < action.damage[j].length; k++) {
+                      var pos = currQuest.formation[action.damage[j][k].pos];
+                      currQuest.characters[pos].currHP = parseInt(action.damage[j][k].hp);
+                    }
+                  }
                 }
               }
+              isAttack = true;
+              break;
+            case "heal":
+              if (!isFromPlayer) {
+                for (var j = 0; j < action.list.length; j++) {
+                  var pos = currQuest.formation[action.list[j].pos];
+                  currQuest.characters[pos].currHP = parseInt(action.list[j].hp);
+                }
+              }
+              break;
+            case "resurrection":
+              currQuest.characters[action.index].currHP = action.hp;
+              break;
+            case "rematch":
+              if (currQuest.charNum >= 4) {
+                currQuest.formation = ['0', '1', '2', '3'];
+              } else {
+                currQuest.formation = [];
+                for (var j = 0; j < currQuest.charNum; j++) {
+                  currQuest.formation.push('' + j);
+                }
+              }
+              if (action.hp) {
+                for (var j = 0; j < action.hp.length; j++) {
+                  if (currQuest.characters[j] !== null) {
+                    currQuest.characters[j].currHP = action.hp[j];
+                  }
+                }
+              } else {
+                for (var j = 0; j < currQuest.characters.length; j++) {
+                  if (currQuest.characters[j] !== null) {
+                    currQuest.characters[j].currHP = currQuest.characters[j].maxHP;
+                  }
+                }
+              }
+              if (action.potion) {
+                currQuest.potions.elixir.count = action.potion.count;
+                if (currQuest.potions.elixir.limit_flg) {
+                  currQuest.potions.elixir.limit_remain--;
+                }
+              }
+              hasFormationChanged = true;
+              break;
+            case "recast":
+              if (!isFromPlayer) {
+                var pos = currQuest.formation[action.pos];
+                currQuest.characters[pos].currCharge = parseInt(action.value);
+              }
+              break;
+            case "die":
+              if (!isFromPlayer) {
+                var pos = currQuest.formation[action.pos];
+                currQuest.characters[pos].currHP = 0;
+              }
+              break;
             case 'super':
+              if (!isFromPlayer) {
+                if (action.list) {
+                  for (var j = 0; j < action.list.length; j++) {
+                    for (var k = 0; k < action.list[j].length; k++) {
+                      var pos = currQuest.formation[action.list[j].damage[k].pos];
+                      currQuest.characters[pos].currHP = parseInt(action.list[j].damage[k].hp);
+                    }
+                  }
+                }
+              }
               isAttack = true;
               break;
             case 'boss_gauge':
-              if (syncBossHP) {
-                if (currQuest.enemies[action.pos] === null) {
-                  currQuest.enemies[action.pos] = createEnemy(action.hp, action.hpmax);
-                } else {
-                  currQuest.enemies[action.pos].currHP = action.hp;
-                  currQuest.enemies[action.pos].maxHP = action.hpmax;
-                }
+              if (currQuest.enemies[action.pos] === null) {
+                currQuest.enemies[action.pos] = createEnemy(parseInt(action.hp), parseInt(action.hpmax));
+              } else {
+                currQuest.enemies[action.pos].currHP = parseInt(action.hp);
+                currQuest.enemies[action.pos].maxHP = parseInt(action.hpmax);
               }
               break;
-            case 'summon':
+            case 'summon':  
               isSummon = true;
               if (!isFromPlayer) {
                 if (action.list !== undefined) {
                   if (action.list[0].damage.length === 0) {
                     break;
                   }
-                  if (syncBossHP) {
-                    for (var j = 0; j < action.list.length; j++) {
-                      for (var k = 0; k < action.list[j].damage.length; k++) {
+                  for (var j = 0; j < action.list.length; j++) {
+                    for (var k = 0; k < action.list[j].damage.length; k++) {
+                      if (syncBossHP) {
                         ignoredEnemyHPValues[action.list[j].damage[k].pos].push(action.list[j].damage[k].hp);
                       }
                     }
@@ -1046,9 +1240,9 @@
                   if (action.list[0].damage.length === 0) {
                     break;
                   }
-                  if (syncBossHP) {
-                    for (var j = 0; j < action.list.length; j++) {
-                      for (var k = 0; k < action.list[j].damage.length; k++) {
+                  for (var j = 0; j < action.list.length; j++) {
+                    for (var k = 0; k < action.list[j].damage.length; k++) {
+                      if (syncBossHP) {
                         ignoredEnemyHPValues[action.list[j].damage[k].pos].push(action.list[j].damage[k].hp);
                       }
                     }
@@ -1060,15 +1254,28 @@
               break;
             // ability and other damage handler
             case 'damage':
-              if (!isFromPlayer) {
-                if (action.list !== undefined) {
-                  if (syncBossHP) {
-                    for (var j = 0; j < action.list.length; j++) {
+              if (action.list !== undefined) {
+                if (isFromPlayer) {
+                  for (var j = 0; j < action.list.length; j++) {
+                    if (syncBossHP) {
                       ignoredEnemyHPValues[action.list[j].pos].push(action.list[j].hp);
                     }
                   }
+                  isDamage = true;
+                } else {
+                  for (var j = 0; j < action.list.length; j++) {
+                    var pos = currQuest.formation[action.list[j].pos];
+                    currQuest.characters[pos].currHP = parseInt(action.list[j].hp);
+                  }
                 }
               }
+              break;
+            case 'temporary':
+              currQuest.potions.large = action.large;
+              currQuest.potions.small = action.small;
+              break;
+            case 'event_temporary':
+              currQuest.potions[action.item_id] = action.number;
               break;
             case 'win':
               currQuest.id = '' + action.raid_id;
@@ -1102,7 +1309,13 @@
 
       if (syncAbilities && json.status && json.status !== null) {
         if (json.status.formation) {
-          currQuest.formation = json.status.formation;
+          for (var i = 0; i < currQuest.formation.length; i++) {
+            if (currQuest.formation[i] !== json.status.formation[i]) {
+              hasFormationChanged = true;
+              currQuest.formation = json.status.formation;
+              break;
+            }
+          }
         }
 
         if (json.status.ability !== undefined) {
@@ -1110,7 +1323,7 @@
             if (!json.status.ability.hasOwnProperty(i)) {
               continue;
             }
-            var pos = currQuest.formation[json.status.ability[i].pos];
+            var pos = json.status.ability[i].pos;
             if (currQuest.characters[pos] === null) {
               continue;
             }
@@ -1122,6 +1335,7 @@
               var ability = abilities[j][0];
               if (currQuest.characters[pos].abilities[j - 1] !== null) {
                 currQuest.characters[pos].abilities[j - 1].cooldown = parseInt(ability['ability-recast']);
+                currQuest.characters[pos].abilities[j - 1].data = ability;
               } else {
                 image = skillImageURL + ability.class.match(/ico-ability(\d+_\d+)/i)[1] + '.png';
                 currQuest.characters[pos].abilities[j - 1] = createSkill(
@@ -1130,33 +1344,90 @@
                   image,
                   parseInt(ability['ability-recast']),
                   parseInt(ability.duration),
-                  parseInt(ability['duration-second'])
+                  parseInt(ability['duration-second']),
+                  ability
                 );
               }
             }
           }
-
-          characters = currQuest.characters;
-          formation = currQuest.formation;
         }
       }
 
-      for (var i = 0; i < ignoredEnemyHPValues.length; i++) {
-        if (currQuest.enemies[i] !== null) {
-          for (var j = 0; j < ignoredEnemyHPValues[i].length; j++) {
-            if (ignoredEnemyHPValues[i][j] === currQuest.enemies[i].currHP) {
-              ignoredEnemyHPValues[i].splice(j, 1);
-              break;
+      if (syncBossHP) {
+        for (var i = 0; i < ignoredEnemyHPValues.length; i++) {
+          if (currQuest.enemies[i] !== null) {
+            for (var j = 0; j < ignoredEnemyHPValues[i].length; j++) {
+              if (ignoredEnemyHPValues[i][j] === currQuest.enemies[i].currHP) {
+                ignoredEnemyHPValues[i].splice(j, 1);
+                break;
+              }
             }
+            ignoredEnemyHPValues[i].push(currQuest.enemies[i].currHP);
           }
-          ignoredEnemyHPValues[i].push(currQuest.enemies[i].currHP);
         }
+      }
+      
+      //currQuest.lyria_pos = json.lyria_pos;
+
+      //if (json.status.summon !== undefined && json.status.summon !== null) {
+      //  summonCooldowns = [];
+      //  for (var i = 0; i < json.status.summon.length; i++) {
+      //    summonCooldowns.push({
+      //      'cooldown': json.status.summon[i].recast,
+      //      'special_once_flag': json.status.summon[i].special_once_flag
+      //    });
+      //  }
+      //}
+
+      //if (json.supporter !== undefined && json.supporter !== null) {
+      //  if (json.supporter.recast !== undefined &&
+      //    json.supporter.recast !== null &&
+      //    json.supporter.special_once_flag !== undefined &&
+      //    json.supporter.special_once_flag !== null) {
+      //    summonCooldowns.push({
+      //      'turn': json.supporter.recast,
+      //      'special_once_flag': json.supporter.special_once_flag
+      //    });
+      //  }
+      //}
+
+      //for (var i = 1; i < currQuest.formation.length; i++) {
+      //  var pos = currQuest.formation[i];
+      //  if (currQuest.characters[pos].leader) {
+      //    hasLeader = true;
+      //    break;
+      //  }
+      //}
+
+      //if (currQuest.lyria_num !== -1) {
+      //  if (currQuest.lyria_pos !== -1) {
+      //    canSummon = true;
+      //  }
+      //} else if (hasLeader) {
+      //  canSummon = true;
+      //}
+
+      //if (syncSummons) {
+      //  summons = {
+      //    'cooldowns': summonCooldowns,
+      //    'canSummon': canSummon,
+      //    'summon_enable': json.summon_enable
+      //  };
+      //}
+
+      if (syncAbilities || syncPlayerHP || syncPlayerFormation) {
+        characters = currQuest.characters;
+        formation = currQuest.formation;
       }
 
       if (syncTurns) {
         if (json.status !== undefined && json.status.turn !== undefined) {
           turn = json.status.turn;
         }
+      }
+
+      if (syncPotions) {
+        potions = currQuest.potions;
       }
 
       for (var i = 0; i < currQuest.devIDs.length; i++) {
@@ -1169,7 +1440,9 @@
               'boss': enemies,
               'ignoredEnemyHPValues': ignoredEnemyHPValues,
               'characters': characters,
-              'formation': formation
+              'formation': formation,
+              'hasFormationChanged': hasFormationChanged,
+              'potions': potions
             }
           });
         } else {
@@ -1181,7 +1454,9 @@
               'boss': enemies,
               'ignoredEnemyHPValues': null,
               'characters': characters,
-              'formation': formation
+              'formation': formation,
+              'hasFormationChanged': hasFormationChanged,
+              'potions': potions
             }
           });
         }

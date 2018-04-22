@@ -99,7 +99,9 @@
       (Options in this section will need a page reload to take effect)<br /><br />
       <b>NOTE FOR VIRAMATE USERS</b><br />
       Synchronizing skill cooldowns will NOT work if you do not enable the 
-      'Synchronize status between raid windows' in Viramate settings under the Combat section.
+      'Synchronize status between raid windows' in Viramate settings under the Combat section.<br />
+      Synchronizing character swapping does not work as intended with Viramate,
+      in particular the skill cooldowns aren't properly syncing.
     </span>
   </div>
   <div class="main-wrapper">
@@ -120,8 +122,26 @@
           <label>Sync Boss HP</label>
         </td>
         <td class="sync">
+          <input type="checkbox" id="syncPlayerHP">
+          <label>Sync Character HP/Charge</label>
+        </td>
+        <td class="sync">
+          <input type="checkbox" id="syncPotions">
+          <label>Sync Potions</label>
+        </td>
+      </tr>
+      <tr id="enable-row" class="wrapper">
+        <td class="sync">
           <input type="checkbox" id="syncAbilities">
           <label>Sync Skill CD</label>
+        </td>
+        <td class="sync" style="display: none;">
+          <input type="checkbox" id="syncSummons">
+          <label>Sync Summon CD</label>
+        </td>
+        <td class="sync">
+          <input type="checkbox" id="syncPlayerFormation">
+          <label>Sync Character Swap</label>
         </td>
       </tr>
     </table>
