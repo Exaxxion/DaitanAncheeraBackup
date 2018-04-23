@@ -426,6 +426,9 @@
     },
 
     CheckRenown: function(json) {
+      if (!json || json === null) {
+        return;
+      }
       var array = [];
       if (json.option !== undefined)
       {

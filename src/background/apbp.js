@@ -83,6 +83,9 @@
     },
 
     InitializeQuest: function(json) {
+      if (!json || json === null) {
+        return;
+      }
       decAP = json.action_point;
     },
 

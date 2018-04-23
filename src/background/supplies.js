@@ -284,6 +284,10 @@
     },
 
     GetLoot: function(json) {
+      if (!json || json === null) {
+        return;
+      }
+
       var item;
       var updated = [];
       var list;
