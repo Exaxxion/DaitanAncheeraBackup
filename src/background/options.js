@@ -6,6 +6,7 @@
     skip:                      false,
     skipNext:                  false,
     skipCoopResults:           false,
+    autoRepeat:                false,
     skipUpgradeResults:        false,
     syncAll:                   false,
     syncTurns:                 false,
@@ -208,6 +209,19 @@
       if (responseList[id] !== undefined) {
         for (var i = 0; i < responseList[id].length; i++) {
           responseList[id][i](id, value);
+        }
+      }
+      if (id.length) {
+        for (var i = 0; i < id.length; i++) {
+          if (id[i] === 'autoRepeat') {
+            Message.PostAll({
+              'setOption': {
+                'id': id[i],
+                'value': value
+              }
+            });
+            break;
+          }
         }
       }
     }

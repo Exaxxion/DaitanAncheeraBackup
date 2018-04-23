@@ -10,6 +10,11 @@
   var sortedSupplies = [];
   var imageURL       = '../../assets/images/';
   var themeName      = '';
+  var toggleRepeat   = false;
+
+  var options = {
+    'autoRepeat': false
+  };
 
   var $supplyList = $('#supply-list');
   var $supplyItem = $supplyList.find('.supply-item').first().clone();
@@ -61,6 +66,8 @@
   var $weaponStart   = $('#weapon-start-container');
   var $weaponEnd     = $('#weapon-end-container');
 
+  var $repeatQuestIcon = $('#quest-repeat').find('.glyphicon-repeat');
+
   $searchSupplies.on('input paste', function(){
     if ($(this).val() !== '') {
       $currCategory.removeClass('active');
@@ -77,6 +84,21 @@
         Message.Post({'openURL': url + $(this).data('url')});
       }
     });
+  });
+  $('#quest-repeat').off('click').click(function() {
+    if (!options.autoRepeat) {
+      if ($(this).data('url') !== undefined && $(this).data('url') !== '') {
+        Message.Post({ 'openURL': url + $(this).data('url') });
+      }
+    } else {
+      if (!$repeatQuestIcon.hasClass('glyphicon-refresh-animate')) {
+        $repeatQuestIcon.addClass('glyphicon-refresh-animate');
+        toggleRepeat = true;
+      } else {
+        $repeatQuestIcon.removeClass('glyphicon-refresh-animate')
+        toggleRepeat = false;
+      }
+    }
   });
   $('#contents').find('.copy-url').each(function() {
     $(this).click(function() {
@@ -319,6 +341,8 @@
             setPlannerDropdowns(msg.setPlannerDropdowns.type, msg.setPlannerDropdowns.build);
           } else if (msg.setTooltip) {
             setTooltip(msg.setTooltip.id, msg.setTooltip.text);
+          } else if (msg.setOption) {
+            setOption(msg.setOption.id, msg.setOption.value);
           }
         }
       }
@@ -433,6 +457,19 @@
     }
     if (message.setTooltip) {
       setTooltip(message.setTooltip.id, message.setTooltip.text);
+    }
+    if (message.setOption) {
+      setOption(message.setOption.id, message.setOption.value);
+    }
+    if (message.autoRepeat) {
+      if (toggleRepeat) {
+        if (jQueryCache['#quest-repeat'] === undefined) {
+          jQueryCache['#quest-repeat'] = $('#quest-repeat');
+        }
+        if (jQueryCache['#quest-repeat'].data('url') !== undefined && jQueryCache['#quest-repeat'].data('url') !== '') {
+          Message.Post({ 'openURL': url + jQueryCache['#quest-repeat'].data('url') });
+        }
+      }
     }
   });
 
@@ -951,6 +988,14 @@
     document.getElementById('pagestyle').setAttribute('href', sheetURL);
     themeName = theme;
   };
+
+  var setOption = function (id, value) {
+    options[id] = value;
+    if (id === "autoRepeat") {
+      $repeatQuestIcon.removeClass('glyphicon-refresh-animate')
+      toggleRepeat = false;
+    } 
+  }
 
   window.Message = {
     Post: function(message) {

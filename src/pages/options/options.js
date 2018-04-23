@@ -120,6 +120,7 @@ var options = [
   'skip',
   'skipNext',
   'skipCoopResults',
+  'autoRepeat',
   'skipUpgradeResults',
   'syncAll',
   'syncTurns',

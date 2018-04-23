@@ -110,6 +110,13 @@
         'didn\'t work with some specific scenarios',
         '-Adjusted some timings on faster refresh',
         '-Other minor fixes']
+    },
+    '1.2.6': {
+      'index': 13,
+      'notes': ['-Added an auto repeat option',
+        'Clicking the repeat button will toggle',
+        'auto repeat while this option is enabled',
+        '-Added an auto repeat option']
     }
   };
   var patchNoteList = [
@@ -125,7 +132,8 @@
     '1.2.2',
     '1.2.3',
     '1.2.4',
-    '1.2.5'
+    '1.2.5',
+    '1.2.6'
   ];
   var currentVersion = undefined;
 
@@ -271,6 +279,7 @@
         response = response.concat(Supplies.InitializeDev());
         response = response.concat(Buffs.InitializeDev());
         response = response.concat(Quest.InitializeDev());
+        response.push({ 'setOption': {'id': 'autoRepeat', 'value': Options.Get('autoRepeat')}});
         connections[message.id].postMessage({initialize: response});
         return;
       }
@@ -361,6 +370,14 @@
       if (message.consoleLog) {
         console.log(message.consoleLog);
       }
+      if (message.getOption) {
+        Message.Post(message.id, {
+          'getOption': {
+            'id': message.getOption,
+            'value': Options.Get(message.getOption)
+          }
+        });
+      }
       if (message.request) {
         //verify current ap/ep
         if (message.request.url.indexOf('/user/status?') !== -1 ||
@@ -406,6 +423,7 @@
         if (message.request.url.indexOf('/result/data/') !== -1) {
           Supplies.GetLoot(message.request.response);
           Profile.CompleteQuest(message.request.response);
+          Quest.CompleteQuest(message.request.response, message.request.url, message.id);
           Quest.CheckSpecialQuest(message.request.response);
           Dailies.CompleteQuest(message.request.response);
         }
@@ -422,9 +440,9 @@
           APBP.StartRaid(message.request.payload);
           Quest.CreateRaid(message.request.payload, message.id);
         }
-        if(message.request.url.indexOf('/check_reward/') !== -1) {
-          Quest.CompleteQuest(message.request.url);
-        }
+        //if(message.request.url.indexOf('/check_reward/') !== -1) {
+        //  Quest.CompleteQuest(message.request.url);
+        //}
         //raid loot
         // if(message.request.url.indexOf('/resultmulti/content/') !== -1) {
         //     Supplies.GetLoot(message.request.response.option.result_data);
@@ -435,6 +453,7 @@
         if (message.request.url.indexOf('/resultmulti/data/') !== -1) {
           Supplies.GetLoot(message.request.response);
           Profile.CompleteRaid(message.request.response);
+          Quest.CompleteQuest(message.request.response, message.request.url, message.id);
           Quest.CheckSpecialQuest(message.request.response);
           Dailies.CompleteCoop(message.request.response, message.id);
           Dailies.CompleteRaid(message.request.response);

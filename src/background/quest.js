@@ -721,7 +721,7 @@
       var id = '' + payload.quest_id;
       // response no longer being sent from this request?
       if (json !== undefined && json !== null) {
-        quests[id] = createQuest(json.raid_id, '#raid/', devID);
+        quests[id] = createQuest('' + json.raid_id, '#raid/', devID);
       } else {
         quests[id] = createQuest(null, '#raid/', devID);
       }
@@ -774,7 +774,14 @@
       setQuestsJQuery(id);
     },
 
-    CompleteQuest: function(url) {
+    CompleteQuest: function (json, url, devID) {
+      var isCoop = false;
+      if (json.url === 'coopraid') {
+        isCoop = true;
+        if (Options.Get('skipCoopResults')) {
+          Message.Post(devID, { 'openURL': '#coopraid' });
+        }
+      }
       var id = url.substring(url.lastIndexOf('/') + 1, url.indexOf('?'));
       //if (quests[id] !== undefined && quests[id] !== null) {
       //  console.log(quest.id);
@@ -785,6 +792,9 @@
       for (var i in quests) {
         if (!quests.hasOwnProperty(i)) continue;
         if (quests[i] !== undefined && quests[i] !== null && quests[i].id === id) {
+          if (!isCoop && Options.Get('autoRepeat')) {
+            Message.Post(devID, { 'autoRepeat': i });
+          }
           delete quests[i];
         }
       }
@@ -834,11 +844,20 @@
         quests[quest_id].image = enemyImageURL + json.boss.param[0].cjs.substring(json.boss.param[0].cjs.lastIndexOf('_') + 1) + '.png';
         quests[quest_id].id = id;
         currQuest = quests[quest_id];
-      } else if ((quests[quest_id] === undefined || quests[quest_id] === null) && json.multi === 0) {
+      } else if ((quests[quest_id] === undefined || quests[quest_id] === null) && json.quest_id && json.multi === 0) {
         quests[quest_id] = createQuest(id, '#raid/', devID);
         quests[quest_id].image = enemyImageURL + json.boss.param[0].cjs.substring(json.boss.param[0].cjs.lastIndexOf('_') + 1) + '.png';
         currQuest = quests[quest_id];
-      } else {
+      } else if (!json.quest_id && json.multi === 1 && json.is_host) {
+        for (var i in quests) {
+          if (!quests.hasOwnProperty(i)) continue;
+          if (quests[i] !== undefined && quests[i] !== null && quests[i].id === id) {
+            quests[i].image = enemyImageURL + json.boss.param[0].cjs.substring(json.boss.param[0].cjs.lastIndexOf('_') + 1) + '.png';
+            currQuest = quests[i];
+          }
+        }
+      }
+      if (currQuest === undefined) {
         var exists = false;
         var image = enemyImageURL + json.boss.param[0].cjs.substring(json.boss.param[0].cjs.lastIndexOf('_') + 1) + '.png';
         for (var i = 0; i < raids.length; i++) {

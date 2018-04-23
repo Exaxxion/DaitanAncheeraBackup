@@ -372,7 +372,7 @@
       setDailies(array);
     },
 
-    CompleteCoop: function(json, devID) {
+    CompleteCoop: function(json) {
       if (json.url === 'coopraid') {
         var list = json.popup_data.coop_daily_mission;
         if (list.length > 0) {
@@ -397,9 +397,6 @@
             }
           }
           setDailies(array);
-        }
-        if (Options.Get('skipCoopResults')) {
-          Message.Post(devID, { 'openURL': '#coopraid' });
         }
       }
     },
