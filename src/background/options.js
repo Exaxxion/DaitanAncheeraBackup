@@ -3,6 +3,7 @@
     ougiRefresh:               false,
     attackRefresh:             false,
     fasterRefresh:             false,
+    alwaysSkipSkillPopups:     false,
     skip:                      false,
     skipNext:                  false,
     skipCoopResults:           false,
@@ -132,7 +133,8 @@
     'syncAbilities',
     'syncSummons',
     'syncPlayerFormation',
-    'fasterRefresh'
+    'fasterRefresh',
+    'alwaysSkipSkillPopups'
   ];
 
   var isHL = false;

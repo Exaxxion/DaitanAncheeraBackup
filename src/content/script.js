@@ -19,7 +19,8 @@
       syncAbilities: false,
       syncSummons: false,
       syncPlayerFormation: false,
-      fasterRefresh: false
+      fasterRefresh: false,
+      alwaysSkipSkillPopups: false
     },
     shadowScript = null,
     externalChannel = null,
@@ -177,6 +178,12 @@
           if (message.syncClient.characters !== null && message.syncClient.formation !== null) {
             if (options.syncAll || options.syncAbilities) {
               updateAbilityCooldowns(message.syncClient.characters, message.syncClient.formation);
+              sendExternalMessage({
+                'updateAbilities': {
+                  'formation': message.syncClient.formation,
+                  'characters': message.syncClient.characters
+                }
+              });
             }
             if (options.syncAll || options.syncPlayerHP) {
               updatePlayerHP(message.syncClient.characters, message.syncClient.formation);

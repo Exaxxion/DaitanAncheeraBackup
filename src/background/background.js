@@ -3,7 +3,7 @@
   var currURL    = '';
   var pageLoaded = true;
 
-  var CURRENT_VERSION = '1.2.5';
+  var CURRENT_VERSION = '1.2.7';
   var BASE_VERSION    = '1.0.1';
   var patchNotes = {
     '1.0.1': {
@@ -117,6 +117,18 @@
         'Clicking the repeat button will toggle',
         'auto repeat while this option is enabled',
         '-Added an auto repeat option']
+    },
+    '1.2.7': {
+      'index': 14,
+      'notes': ['-Added an option to always hide skill prompts',
+        '-Fixed skill cooldowns sometimes becoming',
+        'desynced with viramate',
+        '-Fixed an issue with skill buttons',
+        'sometimes becoming unresponsive after',
+        'being spam clicked and/or triggering',
+        'the lockout prompt',
+        '-Improved performance with sync',
+        '(hopefully less laggy)']
     }
   };
   var patchNoteList = [
@@ -133,7 +145,8 @@
     '1.2.3',
     '1.2.4',
     '1.2.5',
-    '1.2.6'
+    '1.2.6',
+    '1.2.7'
   ];
   var currentVersion = undefined;
 

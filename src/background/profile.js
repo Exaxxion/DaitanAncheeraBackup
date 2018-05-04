@@ -165,6 +165,7 @@
         }
       }
       setProfile(tuples);
+      Profile.GetLoot(json);
     },
 
     CompleteRaid: function (json) {
@@ -400,6 +401,12 @@
             for (var key in list[property]) {
               if (list[property].hasOwnProperty(key)) {
                 item = list[property][key];
+                if (item.item_kind == 4 ||
+                    item.item_kind == 10 ||
+                    item.item_kind == 27 ||
+                    item.item_kind == 28) {
+                  continue;
+                }
                 var category = getCategory(item.item_kind);
                 if (category !== undefined) {
                   if (tuples[category] === undefined) {
@@ -407,6 +414,9 @@
                   } else {
                     tuples[category] += parseInt(item.count);
                   }
+                } else {
+                  console.log("unknown item_kind: '" + item.item_kind + "'");
+                  console.log(item);
                 }
               }
             }
@@ -607,7 +617,6 @@
       case '59':
         return 'defenseBadges';
       default:
-        console.log("unknown item_kind: '" + item_kind + "'");
         return undefined;
     }
   };

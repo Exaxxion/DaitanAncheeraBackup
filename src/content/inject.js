@@ -11,18 +11,23 @@
             {
               'hp': 0,
               'hpmax': 0,
-              'hpignored': []
+              'hpignored': [],
+              'elem': null
             }, {
               'hp': 0,
               'hpmax': 0,
-              'hpignored': []
+              'hpignored': [],
+              'elem': null
             }, {
               'hp': 0,
               'hpmax': 0,
-              'hpignored': []
+              'hpignored': [],
+              'elem': null
             }
           ]
-        }
+        },
+        'characters': [null, null, null, null, null, null],
+        'formation': null
       }
     },
     lockBossHP = false,
@@ -36,7 +41,8 @@
       syncAbilities: false,
       syncSummons: false,
       syncPlayerFormation: false,
-      fasterRefresh: false
+      fasterRefresh: false,
+      alwaysSkipSkillPopups: false
     },
     port = null,
     pendingMsgs = [],
@@ -202,6 +208,12 @@
         }
       }
     }
+    if (typeof message.updateAbilities !== "undefined") {
+      if (options.syncAll || options.syncAbilities) {
+        gameVars.characters = message.updateAbilities.characters;
+        gameVars.formation = message.updateAbilities.formation;
+      }
+    }
   }
 
   function updateTurns() {
@@ -216,7 +228,6 @@
     }
     if (typeof context.stage.gGameStatus === "undefined" || context.stage.gGameStatus === null) {
       return;
-      consoleLog('before: ' + context.stage.gGameStatus.turn);
     }
     if (context.stage.gGameStatus.turn < gameVars.gs.turn) {
       context.stage.gGameStatus.turn = gameVars.gs.turn;
@@ -233,13 +244,14 @@
     });
   }
 
-  function observeEnemyHP(i) {
+  function observeEnemyHP(i, elem) {
+    gameVars.gs.boss.param[i].elem = elem;
     new MutationObserver(function (mutations) {
-      updateEnemyHP(i);
-    }).observe(context.document.getElementById('enemy-hp' + i), { attributes: false, attributeOldValue: false, characterData: false, subtree: false, childList: true });
+      updateEnemyHP(i, gameVars.gs.boss.param[i].elem);
+    }).observe(elem, { attributes: false, attributeOldValue: false, characterData: false, subtree: false, childList: true });
   }
 
-  function updateEnemyHP(i) {
+  function updateEnemyHP(i, elem) {
     if (!isNaN(context.stage.gGameStatus.boss.param[i].hp)) {
       // FUCKING WHY CYGAMES
       if (typeof context.stage.gGameStatus.boss.param[i].hp !== "number") {
@@ -248,11 +260,8 @@
       if (context.stage.gGameStatus.boss.param[i].hp !== gameVars.gs.boss.param[i].hp) {
         if (gameVars.gs.boss.param[i].hpignored.length > 0) {
           var isIgnored = false;
-          for (var j = 0; j < gameVars.gs.boss.param[i].hpignored.length; j++) {
-            if (context.stage.gGameStatus.boss.param[i].hp === gameVars.gs.boss.param[i].hpignored[j] && gameVars.gs.attacking === 1) {
-              isIgnored = true;
-              break;
-            }
+          if (gameVars.gs.boss.param[i].hpignored.indexOf(context.stage.gGameStatus.boss.param[i].hp) === -1 && gameVars.gs.attacking === 1) {
+            isIgnored = true;
           }
           if (!isIgnored) {
             lockBossHP = true;
@@ -268,61 +277,120 @@
         gameVars.gs.boss.param[i].hp = context.stage.gGameStatus.boss.param[i].hp;
         gameVars.gs.boss.param[i].hpmax = context.stage.gGameStatus.boss.param[i].hpmax;
         var hpPercent = '' + Math.ceil((gameVars.gs.boss.param[i].hp / gameVars.gs.boss.param[i].hpmax) * 100);
-        if (hpPercent !== context.document.getElementById('enemy-hp' + i).textContent) {
-          context.document.getElementById('enemy-hp' + i).textContent = hpPercent;
+        if (hpPercent !== elem.textContent) {
+          elem.textContent = hpPercent;
         }
       }
     }
   }
 
   new MutationObserver(function (mutations) {
-    mutations.forEach(function (mutation) {
-      if (typeof context.stage !== "undefined" && context.stage !== null) {
-        if (typeof context.stage.gGameStatus !== "undefined" && context.stage.gGameStatus !== null) {
-          if (options.syncAll || options.syncTurns) {
-            if (gameVars.gs.attacking !== context.stage.gGameStatus.attacking) {
-              gameVars.gs.attacking = context.stage.gGameStatus.attacking;
-              if (gameVars.gs.attacking === 0) {
-                lockBossHP = false;
-                for (var i = 0; i < context.stage.gGameStatus.boss.param.length; i++) {
-                  gameVars.gs.boss.param[i].hpignored = [];
-                }
+    if (typeof context.stage !== "undefined" && context.stage !== null) {
+      if (typeof context.stage.gGameStatus !== "undefined" && context.stage.gGameStatus !== null) {
+        if (options.syncAll || options.syncTurns) {
+          if (gameVars.gs.attacking !== context.stage.gGameStatus.attacking) {
+            gameVars.gs.attacking = context.stage.gGameStatus.attacking;
+            if (gameVars.gs.attacking === 0) {
+              lockBossHP = false;
+              for (var i = 0; i < context.stage.gGameStatus.boss.param.length; i++) {
+                gameVars.gs.boss.param[i].hpignored = [];
               }
-              updateTurns();
             }
-            if (trigger.turnCounter === undefined) {
-              if (context.document.getElementsByClassName('prt-turn-info').length) {
+            updateTurns();
+          }
+        }
+        if (options.alwaysSkipSkillPopups) {
+          if (typeof context.stage.gGameStatus.ability_popup !== "undefined" && context.stage.gGameStatus.ability_popup !== null) {
+            context.stage.gGameStatus.ability_popup = 0;
+          }
+        }
+        mutations.forEach(function (mutation) {
+          if (options.syncAll || options.syncTurns) {
+            if (typeof trigger.turnCounter === "undefined") {
+              if (mutation.target.classList.contains('prt-turn-info')) {
                 new MutationObserver(function (mutations) {
                   updateTurns();
-                }).observe(context.document.getElementsByClassName('prt-turn-info')[0], { attributes: true, attributeOldValue: true, characterData: false, subtree: true, childList: true });
+                }).observe(mutation.target, { attributes: true, attributeOldValue: true, characterData: false, subtree: true, childList: true });
                 trigger.turnCounter = true;
               }
             }
           }
           if (options.syncAll || options.syncBossHP) {
-            if (trigger.enemyHP0 === undefined) {
-              if (context.document.getElementById('enemy-hp0') !== null) {
-                observeEnemyHP(0);
-                trigger.enemyHP0 = true;
-              }
+            switch (mutation.target.id) {
+              case 'enemy-hp0':
+                if (typeof trigger.enemyHP0 === "undefined") {
+                  observeEnemyHP(0, mutation.target);
+                  trigger.enemyHP0 = true;
+                }
+                break;
+              case 'enemy-hp1':
+                if (typeof trigger.enemyHP1 === "undefined") {
+                  observeEnemyHP(1, mutation.target);
+                  trigger.enemyHP1 = true;
+                }
+                break;
+              case 'enemy-hp2':
+                if (typeof trigger.enemyHP2 === "undefined") {
+                  observeEnemyHP(2, mutation.target);
+                  trigger.enemyHP2 = true;
+                }
+                break;
+              default:
+                break;
             }
-            if (trigger.enemyHP1 === undefined) {
-              if (context.document.getElementById('enemy-hp1') !== null) {
-                observeEnemyHP(1);
-                trigger.enemyHP1 = true;
+          }
+          if (options.syncAll || options.syncAbilities) {
+            if (mutation.target.classList.length >= 2 && mutation.target.classList[1].indexOf('ability-character-num-') !== -1) {
+              var abiData = mutation.target.classList[1].split('-');
+              if (abiData.length >= 5) {
+                var charIndex = parseInt(abiData[3]) - 1;
+                var abiIndex = parseInt(abiData[4]) - 1;
+                if (gameVars.formation !== null && typeof gameVars.formation[charIndex] !== "undefined") {
+                  var pos = gameVars.formation[charIndex];
+                  if (gameVars.characters[pos] !== null && gameVars.characters[pos].abilities[abiIndex] !== null) {
+                    if (mutation.target.getAttribute('ability-recast') != gameVars.characters[pos].abilities[abiIndex].cooldown) {
+                      mutation.target.setAttribute('ability-recast', gameVars.characters[pos].abilities[abiIndex].cooldown);
+                    }
+                    if (gameVars.characters[pos].abilities[abiIndex].cooldown == 0
+                        && mutation.target.parentElement.classList.contains('btn-ability-unavailable')) {
+                      mutation.target.parentElement.classList.remove('btn-ability-unavailable');
+                      mutation.target.parentElement.classList.add('btn-ability-available');
+                    } else if (gameVars.characters[pos].abilities[abiIndex].cooldown != 0
+                        && mutation.target.parentElement.classList.contains('btn-ability-available')) {
+                      mutation.target.parentElement.classList.remove('btn-ability-available');
+                      mutation.target.parentElement.classList.add('btn-ability-unavailable');
+                    }
+                    if (gameVars.characters[pos].abilities[abiIndex].cooldown == 0 &&
+                        mutation.target.parentElement.classList.contains('tmp-mask') &&
+                        !mutation.target.parentElement.classList.contains('on')) {
+                      mutation.target.parentElement.classList.remove('tmp-mask');
+                    }
+                  }
+                }
               }
-            }
-            if (trigger.enemyHP2 === undefined) {
-              if (context.document.getElementById('enemy-hp2') !== null) {
-                observeEnemyHP(2);
-                trigger.enemyHP2 = true;
+            } else if (mutation.target.classList.contains('lis-ability')) {
+              var abiData = mutation.target.children[0].classList[1].split('-');
+              if (abiData.length >= 5) {
+                var charIndex = parseInt(abiData[3]) - 1;
+                var abiIndex = parseInt(abiData[4]) - 1;
+                if (gameVars.formation !== null && typeof gameVars.formation[charIndex] !== "undefined") {
+                  var pos = gameVars.formation[charIndex];
+                  if (gameVars.characters[pos] !== null && gameVars.characters[pos].abilities[abiIndex] !== null) {
+                    if (gameVars.characters[pos].abilities[abiIndex].cooldown == 0 &&
+                      mutation.target.parentElement.classList.contains('tmp-mask') &&
+                      !mutation.target.parentElement.classList.contains('on')) {
+                      mutation.target.parentElement.classList.remove('tmp-mask');
+                    }
+                  }
+                }
               }
             }
           }
-        }
+        });
       }
-    });
+    }
   }).observe(context.document, { attributes: true, attributeOldValue: true, characterData: false, subtree: true, childList: true });
+
   context.window.addEventListener("hashchange", function (event) {
     if (typeof trigger.turnCounter !== "undefined") {
       delete trigger.turnCounter;

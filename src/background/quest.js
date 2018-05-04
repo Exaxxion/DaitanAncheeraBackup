@@ -18,13 +18,13 @@
   var currRaidID = null;
   var currCoopID = null;
 
-  var mainCharacterImageURL = 'http://game-a1.granbluefantasy.jp/assets/img_mid/sp/assets/leader/raid_normal/'; //.jpg
-  var characterImageURL     = 'http://game-a1.granbluefantasy.jp/assets/img_mid/sp/assets/npc/raid_normal/';    //.jpg
+  var mainCharacterImageURL = 'http://game-a1.granbluefantasy.jp/assets/img/sp/assets/leader/raid_normal/'; //.jpg
+  var characterImageURL     = 'http://game-a1.granbluefantasy.jp/assets/img/sp/assets/npc/raid_normal/';    //.jpg
   var enemyImageURL         = 'http://gbf.game-a1.mbga.jp/assets_en/img/sp/assets/enemy/s/';
-  var skillImageURL         = 'http://game-a1.granbluefantasy.jp/assets/img_mid/sp/ui/icon/ability/m/';         //.png
+  var skillImageURL         = 'http://game-a1.granbluefantasy.jp/assets/img/sp/ui/icon/ability/m/';         //.png
   var skillImageClosingURL = '.png?1458197995';
-  var statusImageURL        = 'http://game-a1.granbluefantasy.jp/assets/img_mid/sp/ui/icon/status/x64/status_';  //.png
-  var summonImageURL        = 'http://gbf.game-a.mbga.jp/assets_en/img/sp/assets/summon/m/';
+  var statusImageURL        = 'http://game-a1.granbluefantasy.jp/assets/img/sp/ui/icon/status/x64/status_';  //.png
+  var summonImageURL        = 'http://game-a1.granbluefantasy.jp/assets/img/sp/assets/summon/raid_normal/';
 
   var remainingQuests = {
     '300011' : null,
@@ -419,7 +419,8 @@
   var createSummon = function(image, cooldown) {
     return {
       image:    image,
-      cooldown: cooldown
+      cooldown: cooldown,
+      onceOnly: false
     };
   };
 
@@ -841,36 +842,30 @@
         }});
       }
       if (quests[quest_id] !== undefined && quests[id] !== null) {
-        quests[quest_id].image = enemyImageURL + json.boss.param[0].cjs.substring(json.boss.param[0].cjs.lastIndexOf('_') + 1) + '.png';
         quests[quest_id].id = id;
         currQuest = quests[quest_id];
       } else if ((quests[quest_id] === undefined || quests[quest_id] === null) && json.quest_id && json.multi === 0) {
         quests[quest_id] = createQuest(id, '#raid/', devID);
-        quests[quest_id].image = enemyImageURL + json.boss.param[0].cjs.substring(json.boss.param[0].cjs.lastIndexOf('_') + 1) + '.png';
         currQuest = quests[quest_id];
       } else if (!json.quest_id && json.multi === 1 && json.is_host) {
         for (var i in quests) {
           if (!quests.hasOwnProperty(i)) continue;
           if (quests[i] !== undefined && quests[i] !== null && quests[i].id === id) {
-            quests[i].image = enemyImageURL + json.boss.param[0].cjs.substring(json.boss.param[0].cjs.lastIndexOf('_') + 1) + '.png';
             currQuest = quests[i];
           }
         }
       }
       if (currQuest === undefined) {
         var exists = false;
-        var image = enemyImageURL + json.boss.param[0].cjs.substring(json.boss.param[0].cjs.lastIndexOf('_') + 1) + '.png';
         for (var i = 0; i < raids.length; i++) {
           if (raids[i].id === id) {
             exists = true;
-            raids[i].image = image;
             currQuest = raids[i];
             break;
           }
         }
         if (!exists) {
           raids.push(createQuest(id, '#raid_multi/', devID));
-          raids[raids.length - 1].image = image;
           currQuest = raids[raids.length - 1];
         }
       }
@@ -950,6 +945,7 @@
             currQuest.enemies[i].maxHP = parseInt(json.boss.param[i].hpmax);
           }
         }
+        currQuest.image = enemyImageURL + json.boss.param[0].cjs.substring(json.boss.param[0].cjs.lastIndexOf('_') + 1) + '.png';
       }
 
       if (json.potion) {
@@ -980,13 +976,12 @@
       //currQuest.lyria_num = json.lyria_num;
       //currQuest.lyria_pos = json.lyria_pos;
 
-      //if (json.summon !== undefined && json.summon !== null) {
-      //  summonCooldowns = [];
-      //  for (var i = 0; i < json.summon.length; i++) {
-      //    summonCooldowns.push({
-      //      'cooldown': json.summon[i].recast,
-      //      'special_once_flag': json.summon[i].special_once_flag
-      //    });
+      //if (json.summon) {
+      //  for (var i = 0; i < json.summon; i++) {
+      //    if (json.summon[i].id !== null && json.summon[i].id !== '') {
+      //      currQuest.summons[i] = createSummon(summonImageURL + json.summon[i].id + '.jpg', json.summon[i].recast);
+      //      currQuest.summons[i].onceOnly = json.summon[i].special_once_flag;
+      //    }
       //  }
       //}
 

@@ -117,6 +117,7 @@ var options = [
   'ougiRefresh',
   'attackRefresh',
   'fasterRefresh',
+  'alwaysSkipSkillPopups',
   'skip',
   'skipNext',
   'skipCoopResults',
