@@ -47,16 +47,16 @@
           <label>Attack Refresh</label>
         </td>
         <td class="quest">
+          <input type="checkbox" id="summonRefresh">
+          <label>Summon Refresh</label>
+        </td>
+        <td class="quest">
           <input type="checkbox" id="ougiRefresh">
           <label>Ougi Refresh</label>
         </td>
         <td class="quest">
           <input type="checkbox" id="fasterRefresh">
           <label>Faster Auto Refresh</label>
-        </td>
-        <td class="quest">
-          <input type="checkbox" id="alwaysSkipSkillPopups">
-          <label>Always Skip Skill Popups</label>
         </td>
       </tr>
       <tr id="enable-row" class="wrapper">
@@ -81,6 +81,12 @@
         <td class="quest">
           <input type="checkbox" id="skipUpgradeResults">
           <label>Skip Upgrade/Reduce Results</label>
+        </td>
+      </tr>
+      <tr id="enable-row" class="wrapper">
+        <td class="quest">
+          <input type="checkbox" id="alwaysSkipSkillPopups">
+          <label>Always Skip Skill Popups</label>
         </td>
       </tr>
     </table>
@@ -124,6 +130,10 @@
         <td class="sync">
           <input type="checkbox" id="syncTurns">
           <label>Sync Turns</label>
+        </td>
+        <td class="sync">
+          <input type="checkbox" id="syncAbilityTurns">
+          <label>Sync Skill Turns</label>
         </td>
         <td class="sync">
           <input type="checkbox" id="syncBossHP">

@@ -4,6 +4,7 @@
     gameVars = {
       'gs': {
         'turn': -1,
+        'ability_turn': -1,
         'attacking': 0,
         'raid_id': null,
         'boss': {
@@ -35,6 +36,7 @@
     options = {
       syncAll: false,
       syncTurns: false,
+      syncAbilityTurns: false,
       syncBossHP: false,
       syncPlayerHP: false,
       syncPotions: false,
@@ -92,6 +94,19 @@
             // this shit goes null/undefined again mid-function
             if (typeof context.stage.gGameStatus !== "undefined" && context.stage.gGameStatus !== null) {
               context.stage.gGameStatus.turn = gs.turn;
+            }
+          }
+        }
+      }
+      if (options.syncAll || options.syncAbilityTurns) {
+        if (gs.ability_turn !== null && gs.ability_turn > 0) {
+          gameVars.gs.ability_turn = gs.ability_turn;
+          if (typeof context.stage !== "undefined" && context.stage !== null) {
+            // this shit goes null/undefined again mid-function
+            if (typeof context.stage.pJsnData !== "undefined" && context.stage.pJsnData !== null) {
+              if (typeof context.stage.pJsnData.ability_turn !== "undefined" && context.stage.pJsnData.ability_turn !== null) {
+                context.stage.pJsnData.ability_turn = gs.ability_turn;
+              }
             }
           }
         }
@@ -236,6 +251,29 @@
     }
   }
 
+  function updateAbilityTurns() {
+    if (!options.syncAll && !options.syncAbilityTurns) {
+      return;
+    }
+    if (gameVars.gs.ability_turn === -1) {
+      return;
+    }
+    if (typeof context.stage === "undefined" || context.stage === null) {
+      return;
+    }
+    if (typeof context.stage.pJsnData === "undefined" || context.stage.pJsnData === null) {
+      return;
+    }
+    if (typeof context.stage.pJsnData.ability_turn === "undefined" || context.stage.pJsnData.ability_turn === null) {
+      return;
+    }
+    if (context.stage.pJsnData.ability_turn < gameVars.gs.ability_turn) {
+      context.stage.pJsnData.ability_turn = gameVars.gs.ability_turn;
+    } else {
+      gameVars.gs.ability_turn = context.stage.pJsnData.ability_turn;
+    }
+  }
+
   function consoleLog(msg) {
     postMessage({
       'consoleLog': {
@@ -287,7 +325,7 @@
   new MutationObserver(function (mutations) {
     if (typeof context.stage !== "undefined" && context.stage !== null) {
       if (typeof context.stage.gGameStatus !== "undefined" && context.stage.gGameStatus !== null) {
-        if (options.syncAll || options.syncTurns) {
+        if (options.syncAll || options.syncTurns || options.syncAbilityTurns) {
           if (gameVars.gs.attacking !== context.stage.gGameStatus.attacking) {
             gameVars.gs.attacking = context.stage.gGameStatus.attacking;
             if (gameVars.gs.attacking === 0) {
@@ -297,6 +335,7 @@
               }
             }
             updateTurns();
+            updateAbilityTurns();
           }
         }
         if (options.alwaysSkipSkillPopups) {
@@ -305,11 +344,22 @@
           }
         }
         mutations.forEach(function (mutation) {
-          if (options.syncAll || options.syncTurns) {
+          if (options.syncAll || options.syncTurns || options.syncAbilityTurns) {
+            if (typeof trigger.abilityTurnCounter === "undefined") {
+              if (mutation.target.classList.contains('prt-command')) {
+                new MutationObserver(function (mutations) {
+                  updateAbilityTurns();
+                }).observe(mutation.target, { attributes: true, attributeOldValue: true, characterData: false, subtree: true, childList: true });
+                trigger.abilityTurnCounter = true;
+              }
+            }
+          }
+          if (options.syncAll || options.syncAbilityTurns) {
             if (typeof trigger.turnCounter === "undefined") {
               if (mutation.target.classList.contains('prt-turn-info')) {
                 new MutationObserver(function (mutations) {
                   updateTurns();
+                  updateAbilityTurns();
                 }).observe(mutation.target, { attributes: true, attributeOldValue: true, characterData: false, subtree: true, childList: true });
                 trigger.turnCounter = true;
               }
@@ -394,6 +444,9 @@
   context.window.addEventListener("hashchange", function (event) {
     if (typeof trigger.turnCounter !== "undefined") {
       delete trigger.turnCounter;
+    }
+    if (typeof trigger.abilityTurnCounter !== "undefined") {
+      delete trigger.abilityTurnCounter;
     }
     if (typeof trigger.enemyHP0 !== "undefined") {
       delete trigger.enemyHP0;

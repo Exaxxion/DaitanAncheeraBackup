@@ -116,6 +116,7 @@ var distinctionInfo = {
 var options = [
   'ougiRefresh',
   'attackRefresh',
+  'summonRefresh',
   'fasterRefresh',
   'alwaysSkipSkillPopups',
   'skip',
@@ -125,6 +126,7 @@ var options = [
   'skipUpgradeResults',
   'syncAll',
   'syncTurns',
+  'syncAbilityTurns',
   'syncBossHP',
   'syncPlayerHP',
   'syncPotions',

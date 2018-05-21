@@ -145,7 +145,7 @@
     '300441' : createRaid(8, 43, 'Tiamat (HL)', 2, 0, '2040020000_high.jpg', ['32'], [3], ['raid'], true),
     '300451' : createRaid(9, 50, 'Nezha (HL)', 1, 0, '2040042000_high.jpg', ['44'], [1], ['raid'], true),
     '303051' : createRaid(10, 56, 'Morrigna (HL)', 1, 0, '303051_high.png', ['44'], [1], ['raid'], true),
-    '303181' : createRaid(11, 62, 'Grimnir (HL)', 1, 0, '303181_high.png', ['525'], [1], ['raid'], true),
+    '303181' : createRaid(11, 62, 'Grimnir (HL)', 2, 0, '303181_high.png', ['525'], [1], ['raid'], true),
 
     '300061' : createRaid(12, 2, 'Flame (N)', 3, 2, '2020018001.jpg', null, null, null, false),
     '300071' : createRaid(13, 5, 'Flame (H)', 3, 2, '2020018001_hard.jpg', null, null, null, false),
@@ -157,7 +157,7 @@
     '300491' : createRaid(19, 44, 'Colossus (HL)', 2, 0, '2040034000_high.jpg', ['47'], [3], ['raid'], true),
     '300501' : createRaid(20, 51, 'Elements (HL)', 1, 0, '2040063000_high.jpg', ['41'], [1], ['raid'], true),
     '302751' : createRaid(21, 57, 'Prom (HL)', 1, 0, '302751_high.png', ['41'], [1], ['raid'], true),
-    '303151' : createRaid(22, 63, 'Shiva (HL)', 1, 0, '303151_high.png', ['522'], [1], ['raid'], true),
+    '303151' : createRaid(22, 63, 'Shiva (HL)', 2, 0, '303151_high.png', ['522'], [1], ['raid'], true),
 
     '300111' : createRaid(23, 3, 'Guard (N)', 3, 2, '2030013001.jpg', null, null, null, false),
     '300121' : createRaid(24, 6, 'Guard (H)', 3, 2, '2030013001_hard.jpg', null, null, null, false),
@@ -169,7 +169,7 @@
     '300511' : createRaid(30, 45, 'Leviathan (HL)', 2, 0, '2040028000_high.jpg', ['48'], [3], ['raid'], true),
     '300521' : createRaid(31, 52, 'Macula (HL)', 1, 0, '2040002000_high.jpg', ['42'], [1], ['raid'], true),
     '303041' : createRaid(32, 58, 'Ca Ong (HL)', 1, 0, '303041_high.png', ['42'], [1], ['raid'], true),
-    '303161' : createRaid(33, 64, 'Europa (HL)', 1, 0, '303161_high.png', ['523'], [1], ['raid'], true),
+    '303161' : createRaid(33, 64, 'Europa (HL)', 2, 0, '303161_high.png', ['523'], [1], ['raid'], true),
 
     '300171' : createRaid(34, 7, 'Dragon (H)', 3, 2, '2030004000_hard.jpg', null, null, null, false),
     '300181' : createRaid(35, 13, 'Yggdrasil (N)', 3, 2, '2030015000.jpg', null, null, null, false),
@@ -180,7 +180,7 @@
     '300531' : createRaid(40, 46, 'Yggdrasil (HL)', 2, 0, '2040027000_high.jpg', ['49'], [3], ['raid'], true),
     '300541' : createRaid(41, 53, 'Medusa (HL)', 1, 0, '2040059000_high.jpg', ['43'], [1], ['raid'], true),
     '302711' : createRaid(42, 59, 'Gilga (HL)', 1, 0, '302711_high.png', ['43'], [1], ['raid'], true),
-    '303171' : createRaid(43, 65, 'Alexiel (HL)', 1, 0, '303171_high.png', ['524'], [1], ['raid'], true),
+    '303171' : createRaid(43, 65, 'Alexiel (HL)', 2, 0, '303171_high.png', ['524'], [1], ['raid'], true),
 
     '300201' : createRaid(44, 8, 'Wisp (H)', 3, 2, '2030027000_hard.jpg', null, null, null, false),
     '300211' : createRaid(45, 14, 'Adversa (N)', 3, 2, '2030035000.jpg', null, null, null, false),
@@ -191,7 +191,7 @@
     '300561' : createRaid(50, 47, 'Luminiera (HL)', 2, 0, '2040047000_high.jpg', ['50'], [3], ['raid'], true),
     '300571' : createRaid(51, 54, 'Apollo (HL)', 1, 0, '2040023000_high.jpg', ['45'], [1], ['raid'], true),
     '303061' : createRaid(52, 60, 'Hector (HL)', 1, 0, '303061_high.png', ['45'], [1], ['raid'], true),
-    '303191' : createRaid(53, 66, 'Metatron (HL)', 1, 0, '303191_high.png', ['526'], [1], ['raid'], true),
+    '303191' : createRaid(53, 66, 'Metatron (HL)', 2, 0, '303191_high.png', ['526'], [1], ['raid'], true),
 
     '300231' : createRaid(54, 9, 'Eye (H)', 3, 2, '2030038000_hard.jpg', null, null, null, false),
     '300241' : createRaid(55, 15, 'Celeste (N)', 3, 2, '2030041000.jpg', null, null, null, false),
@@ -202,7 +202,7 @@
     '300581' : createRaid(60, 48, 'Celeste (HL)', 2, 0, '2040046000_high.jpg', ['51'], [3], ['raid'], true),
     '300591' : createRaid(61, 55, 'Olivia (HL)', 1, 0, '2040005000_high.jpg', ['46'], [1], ['raid'], true),
     '303071' : createRaid(62, 61, 'Anubis (HL)', 1, 0, '303071_high.png', ['46'], [1], ['raid'], true),
-    '303221' : createRaid(63, 67, 'Avatar (HL)', 1, 0, '303221_high.png', ['527'], [1], ['raid'], true),
+    '303221' : createRaid(63, 67, 'Avatar (HL)', 2, 0, '303221_high.png', ['527'], [1], ['raid'], true),
     
     '300291' : createRaid(64, 40, 'Bahamut (EX)', 3, 0, '2030002000_hell.jpg', ['58'], [1], ['raid'], false),
     '301051' : createRaid(65, 41, 'Grand (EX)', 2, 0, '2040065000_hell.jpg', ['82'], [1], ['raid'], false),
@@ -1088,6 +1088,7 @@
       }
 
       var syncTurns = Options.Get('syncAll') || Options.Get('syncTurns');
+      var syncAbilityTurns = Options.Get('syncAll') || Options.Get('syncAbilityTurns');
       var syncBossHP = Options.Get('syncAll') || Options.Get('syncBossHP');
       var syncPlayerHP = Options.Get('syncAll') || Options.Get('syncPlayerHP');
       var syncPotions = Options.Get('syncAll') || Options.Get('syncPotions');
@@ -1097,6 +1098,7 @@
       var ignoredEnemyHPValues = null;
       var enemies = null;
       var turn = null;
+      var ability_turn = null;
       var characters = null;
       var formation = null;
       var hasFormationChanged = false;
@@ -1311,7 +1313,7 @@
       }
 
       if (!isWin) {
-        if ((Options.Get('attackRefresh') && isAttack) || (Options.Get('ougiRefresh') && isOugi)) {
+        if ((Options.Get('attackRefresh') && isAttack) || (Options.Get('ougiRefresh') && isOugi) || (Options.Get('summonRefresh') && isSummon)) {
           if (Options.Get('fasterRefresh')) {
             chrome.tabs.sendMessage(devID, { 'fastRefresh': true });
           } else {
@@ -1440,6 +1442,12 @@
         }
       }
 
+      if (syncAbilityTurns) {
+        if (json.ability_turn) {
+          ability_turn = json.ability_turn;
+        }
+      }
+
       if (syncPotions) {
         potions = currQuest.potions;
       }
@@ -1450,6 +1458,7 @@
             'syncClient': {
               'type': 'battle',
               'turn': turn,
+              'ability_turn': ability_turn,
               'raid_id': currQuest.id,
               'boss': enemies,
               'ignoredEnemyHPValues': ignoredEnemyHPValues,
@@ -1464,6 +1473,7 @@
             'syncClient': {
               'type': 'battle',
               'turn': turn,
+              'ability_turn': ability_turn,
               'raid_id': currQuest.id,
               'boss': enemies,
               'ignoredEnemyHPValues': null,

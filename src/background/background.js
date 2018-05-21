@@ -3,7 +3,7 @@
   var currURL    = '';
   var pageLoaded = true;
 
-  var CURRENT_VERSION = '1.2.7';
+  var CURRENT_VERSION = '1.2.8';
   var BASE_VERSION    = '1.0.1';
   var patchNotes = {
     '1.0.1': {
@@ -129,6 +129,11 @@
         'the lockout prompt',
         '-Improved performance with sync',
         '(hopefully less laggy)']
+    },
+    '1.2.8': {
+      'index': 15,
+      'notes': ['-Added an option for "skill turn" syncing',
+        '-added an option for auto refreshing summons']
     }
   };
   var patchNoteList = [
@@ -146,7 +151,8 @@
     '1.2.4',
     '1.2.5',
     '1.2.6',
-    '1.2.7'
+    '1.2.7',
+    '1.2.8'
   ];
   var currentVersion = undefined;
 

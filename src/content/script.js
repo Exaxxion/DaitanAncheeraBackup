@@ -6,6 +6,7 @@
   var tempImageURLS = {},
     gameState = {
       'turn': -1,
+      'ability_turn': -1,
       'raid_id': null,
       'enemies': [null, null, null]
     },
@@ -13,6 +14,7 @@
     options = {
       syncAll: false,
       syncTurns: false,
+      syncAbilityTurns: false,
       syncBossHP: false,
       syncPlayerHP: false,
       syncPotions: false,
@@ -165,6 +167,9 @@
           if ((options.syncAll || options.syncTurns) && message.syncClient.turn !== null) {
             gameState.turn = message.syncClient.turn;
           }
+          if ((options.syncAll || options.syncAbilityTurns) && message.syncClient.ability_turn !== null) {
+            gameState.ability_turn = message.syncClient.ability_turn;
+          }
           if (options.syncAll || options.syncBossHP) {
             for (var i = 0; i < gameState.enemies.length; i++) {
               if (message.syncClient.boss[i] !== undefined && message.syncClient.boss[i] !== null) {
@@ -312,6 +317,7 @@
     sendExternalMessage({
       'gameState': {
         'turn': gs.turn,
+        'ability_turn': gs.ability_turn,
         'enemies': gs.enemies,
         'ignoredEnemyHPValues': ignoredEnemyHPValues
       }

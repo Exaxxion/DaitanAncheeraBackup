@@ -2,6 +2,7 @@
   var options = {
     ougiRefresh:               false,
     attackRefresh:             false,
+    summonRefresh:             false,
     fasterRefresh:             false,
     alwaysSkipSkillPopups:     false,
     skip:                      false,
@@ -11,6 +12,7 @@
     skipUpgradeResults:        false,
     syncAll:                   false,
     syncTurns:                 false,
+    syncAbilityTurns:          false,
     syncBossHP:                false,
     syncPlayerHP:              false,
     syncPotions:               false,
@@ -127,6 +129,7 @@
   var externalOptions = [
     'syncAll',
     'syncTurns',
+    'syncAbilityTurns',
     'syncBossHP',
     'syncPlayerHP',
     'syncPotions',
