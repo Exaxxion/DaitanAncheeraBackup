@@ -133,7 +133,7 @@
     '1.2.8': {
       'index': 15,
       'notes': ['-Added an option for "skill turn" syncing',
-        '-added an option for auto refreshing summons']
+        '-Added an option for auto refreshing summons']
     }
   };
   var patchNoteList = [

@@ -395,22 +395,22 @@
               if (abiData.length >= 5) {
                 var charIndex = parseInt(abiData[3]) - 1;
                 var abiIndex = parseInt(abiData[4]) - 1;
-                if (gameVars.formation !== null && typeof gameVars.formation[charIndex] !== "undefined") {
-                  var pos = gameVars.formation[charIndex];
-                  if (gameVars.characters[pos] !== null && gameVars.characters[pos].abilities[abiIndex] !== null) {
-                    if (mutation.target.getAttribute('ability-recast') != gameVars.characters[pos].abilities[abiIndex].cooldown) {
-                      mutation.target.setAttribute('ability-recast', gameVars.characters[pos].abilities[abiIndex].cooldown);
+                if (gameVars.gs.formation !== null && typeof gameVars.gs.formation[charIndex] !== "undefined") {
+                  var pos = gameVars.gs.formation[charIndex];
+                  if (gameVars.gs.characters[pos] !== null && gameVars.gs.characters[pos].abilities[abiIndex] !== null) {
+                    if (mutation.target.getAttribute('ability-recast') != gameVars.gs.characters[pos].abilities[abiIndex].cooldown) {
+                      mutation.target.setAttribute('ability-recast', gameVars.gs.characters[pos].abilities[abiIndex].cooldown);
                     }
-                    if (gameVars.characters[pos].abilities[abiIndex].cooldown == 0
+                    if (gameVars.gs.characters[pos].abilities[abiIndex].cooldown == 0
                         && mutation.target.parentElement.classList.contains('btn-ability-unavailable')) {
                       mutation.target.parentElement.classList.remove('btn-ability-unavailable');
                       mutation.target.parentElement.classList.add('btn-ability-available');
-                    } else if (gameVars.characters[pos].abilities[abiIndex].cooldown != 0
+                    } else if (gameVars.gs.characters[pos].abilities[abiIndex].cooldown != 0
                         && mutation.target.parentElement.classList.contains('btn-ability-available')) {
                       mutation.target.parentElement.classList.remove('btn-ability-available');
                       mutation.target.parentElement.classList.add('btn-ability-unavailable');
                     }
-                    if (gameVars.characters[pos].abilities[abiIndex].cooldown == 0 &&
+                    if (gameVars.gs.characters[pos].abilities[abiIndex].cooldown == 0 &&
                         mutation.target.parentElement.classList.contains('tmp-mask') &&
                         !mutation.target.parentElement.classList.contains('on')) {
                       mutation.target.parentElement.classList.remove('tmp-mask');
@@ -423,10 +423,10 @@
               if (abiData.length >= 5) {
                 var charIndex = parseInt(abiData[3]) - 1;
                 var abiIndex = parseInt(abiData[4]) - 1;
-                if (gameVars.formation !== null && typeof gameVars.formation[charIndex] !== "undefined") {
-                  var pos = gameVars.formation[charIndex];
-                  if (gameVars.characters[pos] !== null && gameVars.characters[pos].abilities[abiIndex] !== null) {
-                    if (gameVars.characters[pos].abilities[abiIndex].cooldown == 0 &&
+                if (gameVars.gs.formation !== null && typeof gameVars.gs.formation[charIndex] !== "undefined") {
+                  var pos = gameVars.gs.formation[charIndex];
+                  if (gameVars.gs.characters[pos] !== null && gameVars.gs.characters[pos].abilities[abiIndex] !== null) {
+                    if (gameVars.gs.characters[pos].abilities[abiIndex].cooldown == 0 &&
                       mutation.target.parentElement.classList.contains('tmp-mask') &&
                       !mutation.target.parentElement.classList.contains('on')) {
                       mutation.target.parentElement.classList.remove('tmp-mask');
