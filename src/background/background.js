@@ -3,7 +3,7 @@
   var currURL    = '';
   var pageLoaded = true;
 
-  var CURRENT_VERSION = '1.2.8';
+  var CURRENT_VERSION = '1.2.9';
   var BASE_VERSION    = '1.0.1';
   var patchNotes = {
     '1.0.1': {
@@ -134,6 +134,11 @@
       'index': 15,
       'notes': ['-Added an option for "skill turn" syncing',
         '-Added an option for auto refreshing summons']
+    },
+    '1.2.9': {
+      'index': 16,
+      'notes': ['-Fixed an issue with skill turn sync',
+        'not resetting when you join raids']
     }
   };
   var patchNoteList = [
@@ -152,7 +157,8 @@
     '1.2.5',
     '1.2.6',
     '1.2.7',
-    '1.2.8'
+    '1.2.8',
+    '1.2.9'
   ];
   var currentVersion = undefined;
 

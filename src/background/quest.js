@@ -814,6 +814,7 @@
       var id = '' + json.raid_id;
       var quest_id = '' + json.quest_id;
       var turn = null;
+      var ability_turn = null;
       var enemies = null;
       var characters = null;
       var formation = null;
@@ -823,6 +824,7 @@
       var hasLeader = false;
       var canSummon = false;
       var syncTurns = Options.Get('syncAll') || Options.Get('syncTurns');
+      var syncAbilityTurns = Options.Get('syncAll') || Options.Get('syncAbilityTurns');
       var syncBossHP = Options.Get('syncAll') || Options.Get('syncBossHP');
       var syncPlayerHP = Options.Get('syncAll') || Options.Get('syncPlayerHP');
       var syncPotions = Options.Get('syncAll') || Options.Get('syncPotions');
@@ -1016,6 +1018,9 @@
       if (syncTurns) {
         turn = json.turn;
       }
+      if (syncAbilityTurns) {
+        ability_turn = json.ability_turn;
+      }
       if (syncBossHP) {
         enemies = currQuest.enemies;
       }
@@ -1041,6 +1046,7 @@
             'syncClient': {
               'type': 'start',
               'turn': turn,
+              'ability_turn': ability_turn,
               'raid_id': currQuest.id,
               'boss': enemies,
               'ignoredEnemyHPValues': null,

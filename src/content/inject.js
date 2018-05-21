@@ -99,7 +99,7 @@
         }
       }
       if (options.syncAll || options.syncAbilityTurns) {
-        if (gs.ability_turn !== null && gs.ability_turn > 0) {
+        if (gs.ability_turn !== null && gs.ability_turn >= 0) {
           gameVars.gs.ability_turn = gs.ability_turn;
           if (typeof context.stage !== "undefined" && context.stage !== null) {
             // this shit goes null/undefined again mid-function
