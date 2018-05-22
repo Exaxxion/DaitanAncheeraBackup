@@ -21,5 +21,8 @@ Use one of the following options to open the DevTools
 
 Then select the `Ancheera` Panel.
 
+### Optimizations
+Tick the disable async stack traces in the chrome devtools settings for an improvement in loadtimes.
+
 ## Background Information
 Please see the [History](HISTORY.md) and [Development](DEVELOPMENT.md) for background information about Ancheera.

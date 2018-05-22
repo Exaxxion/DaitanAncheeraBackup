@@ -447,7 +447,7 @@
       if (data.cooldowns[i].turn !== undefined && data.cooldowns[i].turn !== null) {
         if (data.cooldowns[i].turn > 0 || data.summon_enable <= 0 || !data.canSummon) {
           $(this).removeClass('on btn-summon-available').addClass('off btn-summon-unavailable');
-          if (data.cooldowns[i].special_once_flag) {
+          if (data.cooldowns[i].special_once_flag && data.cooldowns[i].turn > 1000) {
             $(this).addClass('non-reusable');
           }
         } else {
@@ -460,14 +460,6 @@
     if ($('.quick-summon').length > 0) {
       $('.quick-summon').each(function (i) {
         if (data.cooldowns[i].turn !== undefined && data.cooldowns[i].turn !== null) {
-          if (data.cooldowns[i].turn > 0 || data.summon_enable <= 0 || !data.canSummon) {
-            $(this).removeClass('available').addClass('unavailable');
-            if (data.cooldowns[i].special_once_flag) {
-              $(this).addClass('non-reusable');
-            }
-          } else {
-            $(this).removeClass('unavailable').addClass('available');
-          }
         }
         $(this).attr('recast', data.cooldowns[i].turn);
       });

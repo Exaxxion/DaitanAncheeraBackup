@@ -3,7 +3,7 @@
   var currURL    = '';
   var pageLoaded = true;
 
-  var CURRENT_VERSION = '1.2.10';
+  var CURRENT_VERSION = '1.2.11';
   var BASE_VERSION    = '1.0.1';
   var patchNotes = {
     '1.0.1': {
@@ -143,6 +143,11 @@
     '1.2.10': {
       'index': 17,
       'notes': ['-Added summon cooldown syncing']
+    },
+    '1.2.11': {
+      'index': 18,
+      'notes': ['-Fixed cooldowns not syncing properly',
+        'without Lyria in party']
     }
   };
   var patchNoteList = [
@@ -163,7 +168,8 @@
     '1.2.7',
     '1.2.8',
     '1.2.9',
-    '1.2.10'
+    '1.2.10',
+    '1.2.11'
   ];
   var currentVersion = undefined;
 

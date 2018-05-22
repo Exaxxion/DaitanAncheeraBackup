@@ -450,6 +450,25 @@
                 }
               }
             }
+            //if (options.syncAll || options.syncSummons) {
+            //  if (mutation.target.classList.contains('quick-summon')) {
+            //    if (mutation.target.classList.contains('available')) {
+            //      if (context.document.getElementsByClassName('prt-list-top')[0].classList.contains('summon-off') ||
+            //        context.document.getElementsByClassName('prt-list-top')[0].classList.contains('summon-disable') ||
+            //        mutation.target.getAttribute('recast') > 0) {
+            //        mutation.target.classList.remove('available');
+            //        mutation.target.classList.add('unavailable');
+            //      }
+            //    } else if (mutation.target.classList.contains('unavailable')) {
+            //      if (context.document.getElementsByClassName('prt-list-top')[0].classList.contains('summon-on') &&
+            //        !context.document.getElementsByClassName('prt-list-top')[0].classList.contains('summon-disable') &&
+            //        (mutation.target.getAttribute('recast') == 0 || mutation.target.getAttribute('recast') === '')) {
+            //        mutation.target.classList.remove('unavailable');
+            //        mutation.target.classList.add('available');
+            //      }
+            //    }
+            //  }
+            //}
           }
         });
       }

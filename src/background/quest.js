@@ -1011,7 +1011,7 @@
         }
       }
 
-      for (var i = 1; i < currQuest.formation.length; i++) {
+      for (var i = 0; i < currQuest.formation.length; i++) {
         var pos = currQuest.formation[i];
         if (currQuest.characters[pos].leader && currQuest.characters[pos].currHP > 0) {
           hasLeader = true;
@@ -1437,7 +1437,7 @@
         }
       }
 
-      for (var i = 1; i < currQuest.formation.length; i++) {
+      for (var i = 0; i < currQuest.formation.length; i++) {
         var pos = currQuest.formation[i];
         if (currQuest.characters[pos].leader && currQuest.characters[pos].currHP > 0) {
           hasLeader = true;
