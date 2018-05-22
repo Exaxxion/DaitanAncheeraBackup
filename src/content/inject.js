@@ -229,6 +229,21 @@
         gameVars.formation = message.updateAbilities.formation;
       }
     }
+    if (typeof message.updateSummons !== "undefined") {
+      if (options.syncAll || options.syncSummons) {
+        if (typeof context.stage !== "undefined" && typeof context.stage.pJsnData !== "undefined") {
+          if (typeof context.stage.pJsnData.lyria_num !== "undefined") {
+            context.stage.pJsnData.lyria_num = message.updateSummons.lyria_num;
+          }
+          if (typeof context.stage.pJsnData.lyria_pos !== "undefined") {
+            context.stage.pJsnData.lyria_pos = message.updateSummons.lyria_pos;
+          }
+          if (typeof context.stage.pJsnData.summon_enable !== "undefined") {
+            context.stage.pJsnData.summon_enable = message.updateSummons.summon_enable;
+          }
+        }
+      }
+    }
   }
 
   function updateTurns() {

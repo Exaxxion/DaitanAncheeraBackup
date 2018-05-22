@@ -975,45 +975,57 @@
         }
       }
 
-      //currQuest.lyria_num = json.lyria_num;
-      //currQuest.lyria_pos = json.lyria_pos;
+      currQuest.lyria_num = json.lyria_num;
+      currQuest.lyria_pos = json.lyria_pos;
 
-      //if (json.summon) {
-      //  for (var i = 0; i < json.summon; i++) {
-      //    if (json.summon[i].id !== null && json.summon[i].id !== '') {
-      //      currQuest.summons[i] = createSummon(summonImageURL + json.summon[i].id + '.jpg', json.summon[i].recast);
-      //      currQuest.summons[i].onceOnly = json.summon[i].special_once_flag;
-      //    }
-      //  }
-      //}
+      if (json.summon) {
+        summonCooldowns = [];
+        for (var i = 0; i < json.summon.length; i++) {
+          if (json.summon[i].id !== null && json.summon[i].id !== '') {
+            currQuest.summons[i] = createSummon(summonImageURL + json.summon[i].id + '.jpg', json.summon[i].recast);
+            currQuest.summons[i].onceOnly = json.summon[i].special_once_flag;
+            summonCooldowns.push({
+              'turn': json.summon[i].recast,
+              'special_once_flag': json.summon[i].special_once_flag
+            });
+          } else {
+            summonCooldowns.push({
+              'turn': null,
+              'special_once_flag': false
+            });
+          }
+        }
+      }
 
-      //if (json.supporter !== undefined && json.supporter !== null) {
-      //  if (json.supporter.recast !== undefined &&
-      //      json.supporter.recast !== null &&
-      //      json.supporter.special_once_flag !== undefined &&
-      //      json.supporter.special_once_flag !== null) {
-      //    summonCooldowns.push({
-      //      'turn': json.supporter.recast,
-      //      'special_once_flag': json.supporter.special_once_flag
-      //    });
-      //  }
-      //}
+      if (json.supporter !== undefined && json.supporter !== null) {
+        if (json.supporter.recast !== undefined &&
+            json.supporter.recast !== null &&
+            json.supporter.special_once_flag !== undefined &&
+            json.supporter.special_once_flag !== null) {
+          currQuest.summons[i] = createSummon(summonImageURL + json.supporter.id + '.jpg', json.supporter.recast);
+          currQuest.summons[i].onceOnly = json.supporter.special_once_flag;
+          summonCooldowns.push({
+            'turn': json.supporter.recast,
+            'special_once_flag': json.supporter.special_once_flag
+          });
+        }
+      }
 
-      //for (var i = 1; i < currQuest.formation.length; i++) {
-      //  var pos = currQuest.formation[i];
-      //  if (currQuest.characters[pos].leader) {
-      //    hasLeader = true;
-      //    break;
-      //  }
-      //}
+      for (var i = 1; i < currQuest.formation.length; i++) {
+        var pos = currQuest.formation[i];
+        if (currQuest.characters[pos].leader && currQuest.characters[pos].currHP > 0) {
+          hasLeader = true;
+          break;
+        }
+      }
 
-      //if (currQuest.lyria_num !== -1) {
-      //  if (currQuest.lyria_pos !== -1) {
-      //    canSummon = true;
-      //  }
-      //} else if (hasLeader) {
-      //  canSummon = true;
-      //}
+      if (currQuest.lyria_num !== -1) {
+        if (currQuest.lyria_pos !== -1 && currQuest.characters[currQuest.lyria_num].currHP > 0) {
+          canSummon = true;
+        }
+      } else if (hasLeader) {
+        canSummon = true;
+      }
 
       if (syncTurns) {
         turn = json.turn;
@@ -1028,13 +1040,15 @@
         characters = currQuest.characters;
         formation = currQuest.formation;
       }
-      //if (syncSummons) {
-      //  summons = {
-      //    'cooldowns': summonCooldowns,
-      //    'canSummon': canSummon,
-      //    'summon_enable': json.summon_enable
-      //  };
-      //}
+      if (syncSummons) {
+        summons = {
+          'cooldowns': summonCooldowns,
+          'canSummon': canSummon,
+          'summon_enable': json.summon_enable,
+          'lyria_pos': currQuest.lyria_pos,
+          'lyria_num': currQuest.lyria_num
+        };
+      }
       if (syncPotions) {
         potions = currQuest.potions;
       }
@@ -1052,8 +1066,8 @@
               'ignoredEnemyHPValues': null,
               'characters': characters,
               'formation': formation,
-              'hasFormationChanged': syncPlayerFormation,
               'summons': summons,
+              'hasFormationChanged': syncPlayerFormation,
               'potions': potions
             }
           });
@@ -1389,53 +1403,65 @@
         }
       }
       
-      //currQuest.lyria_pos = json.lyria_pos;
+      currQuest.lyria_pos = json.lyria_pos;
 
-      //if (json.status.summon !== undefined && json.status.summon !== null) {
-      //  summonCooldowns = [];
-      //  for (var i = 0; i < json.status.summon.length; i++) {
-      //    summonCooldowns.push({
-      //      'cooldown': json.status.summon[i].recast,
-      //      'special_once_flag': json.status.summon[i].special_once_flag
-      //    });
-      //  }
-      //}
+      if (json.status.summon !== undefined && json.status.summon !== null) {
+        summonCooldowns = [];
+        for (var i = 0; i < json.status.summon.recast.length; i++) {
+          if (json.status.summon.recast[i] !== null) {
+            summonCooldowns.push({
+              'turn': json.status.summon.recast[i],
+              'special_once_flag': currQuest.summons[i].onceOnly
+            });
+          } else {
+            summonCooldowns.push({
+              'turn': null,
+              'special_once_flag': false
+            });
+          }
+        }
+      }
 
-      //if (json.supporter !== undefined && json.supporter !== null) {
-      //  if (json.supporter.recast !== undefined &&
-      //    json.supporter.recast !== null &&
-      //    json.supporter.special_once_flag !== undefined &&
-      //    json.supporter.special_once_flag !== null) {
-      //    summonCooldowns.push({
-      //      'turn': json.supporter.recast,
-      //      'special_once_flag': json.supporter.special_once_flag
-      //    });
-      //  }
-      //}
+      if (json.status.supporter !== undefined && json.status.supporter !== null) {
+        if (json.status.supporter.recast !== undefined &&
+          json.status.supporter.recast !== null) {
+          summonCooldowns.push({
+            'turn': json.status.supporter.recast,
+            'special_once_flag': currQuest.summons[5].onceOnly
+          });
+        } else {
+          summonCooldowns.push({
+            'turn': null,
+            'special_once_flag': false
+          });
+        }
+      }
 
-      //for (var i = 1; i < currQuest.formation.length; i++) {
-      //  var pos = currQuest.formation[i];
-      //  if (currQuest.characters[pos].leader) {
-      //    hasLeader = true;
-      //    break;
-      //  }
-      //}
+      for (var i = 1; i < currQuest.formation.length; i++) {
+        var pos = currQuest.formation[i];
+        if (currQuest.characters[pos].leader && currQuest.characters[pos].currHP > 0) {
+          hasLeader = true;
+          break;
+        }
+      }
 
-      //if (currQuest.lyria_num !== -1) {
-      //  if (currQuest.lyria_pos !== -1) {
-      //    canSummon = true;
-      //  }
-      //} else if (hasLeader) {
-      //  canSummon = true;
-      //}
+      if (currQuest.lyria_num !== -1) {
+        if (currQuest.lyria_pos !== -1 && currQuest.characters[currQuest.lyria_num].currHP > 0) {
+          canSummon = true;
+        }
+      } else if (hasLeader) {
+        canSummon = true;
+      }
 
-      //if (syncSummons) {
-      //  summons = {
-      //    'cooldowns': summonCooldowns,
-      //    'canSummon': canSummon,
-      //    'summon_enable': json.summon_enable
-      //  };
-      //}
+      if (syncSummons) {
+        summons = {
+          'cooldowns': summonCooldowns,
+          'canSummon': canSummon,
+          'summon_enable': json.summon_enable,
+          'lyria_pos': currQuest.lyria_pos,
+          'lyria_num': currQuest.lyria_num
+        };
+      }
 
       if (syncAbilities || syncPlayerHP || syncPlayerFormation) {
         characters = currQuest.characters;
@@ -1470,6 +1496,7 @@
               'ignoredEnemyHPValues': ignoredEnemyHPValues,
               'characters': characters,
               'formation': formation,
+              'summons': summons,
               'hasFormationChanged': hasFormationChanged,
               'potions': potions
             }
@@ -1485,6 +1512,7 @@
               'ignoredEnemyHPValues': null,
               'characters': characters,
               'formation': formation,
+              'summons': summons,
               'hasFormationChanged': hasFormationChanged,
               'potions': potions
             }

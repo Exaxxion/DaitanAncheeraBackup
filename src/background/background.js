@@ -3,7 +3,7 @@
   var currURL    = '';
   var pageLoaded = true;
 
-  var CURRENT_VERSION = '1.2.9';
+  var CURRENT_VERSION = '1.2.10';
   var BASE_VERSION    = '1.0.1';
   var patchNotes = {
     '1.0.1': {
@@ -139,6 +139,10 @@
       'index': 16,
       'notes': ['-Fixed an issue with skill turn sync',
         'not resetting when you join raids']
+    },
+    '1.2.10': {
+      'index': 17,
+      'notes': ['-Added summon cooldown syncing']
     }
   };
   var patchNoteList = [
@@ -158,7 +162,8 @@
     '1.2.6',
     '1.2.7',
     '1.2.8',
-    '1.2.9'
+    '1.2.9',
+    '1.2.10'
   ];
   var currentVersion = undefined;
 

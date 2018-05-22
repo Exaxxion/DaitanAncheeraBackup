@@ -179,6 +179,16 @@
               }
             }
           }
+          if (options.syncAll || options.syncSummons) {
+            updateSummonCooldowns(message.syncClient.summons);
+            sendExternalMessage({
+              'updateSummons': {
+                'lyria_pos': message.syncClient.summons.lyria_pos,
+                'lyria_num': message.syncClient.summons.lyria_num,
+                'summon_enable': message.syncClient.summons.summon_enable
+              }
+            });
+          }
           updateClient(gameState, message.syncClient.ignoredEnemyHPValues, message.syncClient.type);
           if (message.syncClient.characters !== null && message.syncClient.formation !== null) {
             if (options.syncAll || options.syncAbilities) {
@@ -418,6 +428,51 @@
       }
     }
   };
+
+  var updateSummonCooldowns = function (data) {
+    if (data === undefined || data === null) {
+      return;
+    }
+    if (data.summon_enable <= 0) {
+      $('.prt-list-top').removeClass('summon-on').addClass('summon-off');
+    } else {
+      $('.prt-list-top').removeClass('summon-off').addClass('summon-on');
+    }
+    if (data.canSummon) {
+      $('.prt-list-top').removeClass('summon-disable summon-off').addClass('summon-on');
+    } else {
+      $('.prt-list-top').removeClass('summon-on').addClass('summon-disable summon-off');
+    }
+    $('.lis-summon').each(function (i) {
+      if (data.cooldowns[i].turn !== undefined && data.cooldowns[i].turn !== null) {
+        if (data.cooldowns[i].turn > 0 || data.summon_enable <= 0 || !data.canSummon) {
+          $(this).removeClass('on btn-summon-available').addClass('off btn-summon-unavailable');
+          if (data.cooldowns[i].special_once_flag) {
+            $(this).addClass('non-reusable');
+          }
+        } else {
+          $(this).removeClass('off btn-summon-unavailable').addClass('on btn-summon-available');
+        }
+      }
+      $(this).attr('summon-recast', data.cooldowns[i].turn);
+      $($(this).find('.ico-summon-recast').children()[0]).removeClass().addClass('num-recast-s' + data.cooldowns[i].turn);
+    });
+    if ($('.quick-summon').length > 0) {
+      $('.quick-summon').each(function (i) {
+        if (data.cooldowns[i].turn !== undefined && data.cooldowns[i].turn !== null) {
+          if (data.cooldowns[i].turn > 0 || data.summon_enable <= 0 || !data.canSummon) {
+            $(this).removeClass('available').addClass('unavailable');
+            if (data.cooldowns[i].special_once_flag) {
+              $(this).addClass('non-reusable');
+            }
+          } else {
+            $(this).removeClass('unavailable').addClass('available');
+          }
+        }
+        $(this).attr('recast', data.cooldowns[i].turn);
+      });
+    }
+  }
 
   var updatePlayerHP = function(chars, formation) {
     if (chars === undefined || chars === null || formation === undefined || formation === null) {
