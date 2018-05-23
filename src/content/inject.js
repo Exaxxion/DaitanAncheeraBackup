@@ -103,9 +103,9 @@
           gameVars.gs.ability_turn = gs.ability_turn;
           if (typeof context.stage !== "undefined" && context.stage !== null) {
             // this shit goes null/undefined again mid-function
-            if (typeof context.stage.pJsnData !== "undefined" && context.stage.pJsnData !== null) {
-              if (typeof context.stage.pJsnData.ability_turn !== "undefined" && context.stage.pJsnData.ability_turn !== null) {
-                context.stage.pJsnData.ability_turn = gs.ability_turn;
+            if (typeof context.stage.gGameStatus !== "undefined" && context.stage.gGameStatus !== null) {
+              if (typeof context.stage.gGameStatus.abilityTurn !== "undefined" && context.stage.gGameStatus.abilityTurn !== null) {
+                context.stage.gGameStatus.abilityTurn = gs.ability_turn;
               }
             }
           }
@@ -276,16 +276,16 @@
     if (typeof context.stage === "undefined" || context.stage === null) {
       return;
     }
-    if (typeof context.stage.pJsnData === "undefined" || context.stage.pJsnData === null) {
+    if (typeof context.stage.gGameStatus === "undefined" || context.stage.gGameStatus === null) {
       return;
     }
-    if (typeof context.stage.pJsnData.ability_turn === "undefined" || context.stage.pJsnData.ability_turn === null) {
+    if (typeof context.stage.gGameStatus.abilityTurn === "undefined" || context.stage.gGameStatus.abilityTurn === null) {
       return;
     }
-    if (context.stage.pJsnData.ability_turn < gameVars.gs.ability_turn) {
-      context.stage.pJsnData.ability_turn = gameVars.gs.ability_turn;
+    if (context.stage.gGameStatus.abilityTurn < gameVars.gs.ability_turn) {
+      context.stage.gGameStatus.abilityTurn = gameVars.gs.ability_turn;
     } else {
-      gameVars.gs.ability_turn = context.stage.pJsnData.ability_turn;
+      gameVars.gs.ability_turn = context.stage.gGameStatus.abilityTurn;
     }
   }
 

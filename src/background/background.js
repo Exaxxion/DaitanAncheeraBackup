@@ -3,7 +3,7 @@
   var currURL    = '';
   var pageLoaded = true;
 
-  var CURRENT_VERSION = '1.2.11';
+  var CURRENT_VERSION = '1.2.12';
   var BASE_VERSION    = '1.0.1';
   var patchNotes = {
     '1.0.1': {
@@ -148,6 +148,11 @@
       'index': 18,
       'notes': ['-Fixed cooldowns not syncing properly',
         'without Lyria in party']
+    },
+    '1.2.12': {
+      'index': 19,
+      'notes': ['-Fixed skill turn counters',
+        '(cygames changed some variable references)']
     }
   };
   var patchNoteList = [
@@ -169,7 +174,8 @@
     '1.2.8',
     '1.2.9',
     '1.2.10',
-    '1.2.11'
+    '1.2.11',
+    '1.2.12'
   ];
   var currentVersion = undefined;
 

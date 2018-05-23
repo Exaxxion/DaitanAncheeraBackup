@@ -1475,8 +1475,8 @@
       }
 
       if (syncAbilityTurns) {
-        if (json.ability_turn) {
-          ability_turn = json.ability_turn;
+        if (json.status && json.status.ability_turn) {
+          ability_turn = json.status.ability_turn;
         }
       }
 
